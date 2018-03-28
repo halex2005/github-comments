@@ -25,9 +25,9 @@ namespace csharp.Controllers
 
         // GET api/values
         [HttpGet]
-        [Route("/page-comments")]
+        [Route("/page-comments/{number:int}")]
         public Task<ActionResult> GetPageComments(
-            [FromQuery] GetPageCommentsRequestModel model)
+            GetPageCommentsRequestModel model)
         {
             if (!ModelState.IsValid) {
                 return Task.FromResult<ActionResult>(new ContentResult() {
@@ -60,13 +60,14 @@ issue(number: {model.Number}) {{
         }}
     }}
 }}";
-            return FetchGithubGraphQl(pageCommentsQuery);
+            return FetchGithubGraphQl(pageCommentsQuery, model.Pretty);
         }
 
         // GET api/values/5
         [HttpGet]
         [Route("/list-page-comments-count")]
-        public Task<ActionResult> GetCommentsCountForListPage(GetCommentsCountForListPageRequest model)
+        public Task<ActionResult> GetCommentsCountForListPage(
+            [FromQuery] GetCommentsCountForListPageRequest model)
         {
             if (!ModelState.IsValid)
             {
@@ -76,9 +77,9 @@ issue(number: {model.Number}) {{
                 });
             }
 
-            var afterKeyFilter = string.IsNullOrEmpty(model.Offset)
+            var afterKeyFilter = string.IsNullOrEmpty(model.After)
                 ? ""
-                : $", after: \"{model.Offset}\"";
+                : $", after: \"{model.After}\"";
             var commentsCountQuery = $@"
 issues(first: {model.PageSize}, orderBy:{{direction:DESC, field:CREATED_AT}}{afterKeyFilter}) {{
     totalCount
@@ -96,10 +97,10 @@ issues(first: {model.PageSize}, orderBy:{{direction:DESC, field:CREATED_AT}}{aft
     }}
 }}
 ";
-            return FetchGithubGraphQl(commentsCountQuery);
+            return FetchGithubGraphQl(commentsCountQuery, model.Pretty);
         }
 
-        private async Task<ActionResult> FetchGithubGraphQl(string repositoryLevelQuery)
+        private async Task<ActionResult> FetchGithubGraphQl(string repositoryLevelQuery, bool pretty)
         {
             var settings = githubSettings.Value;
             var httpClient = new HttpClient();
@@ -141,7 +142,7 @@ query {{
                 Response.Headers.Add(kv.Key, kv.Value.ToArray());
             }
             return new ContentResult() {
-                Content =  JValue.Parse(content).ToString(Formatting.Indented),
+                Content =  pretty ? JValue.Parse(content).ToString(Formatting.Indented) : content,
                 ContentType = response.Content.Headers.ContentType.ToString(),
                 StatusCode = (int)response.StatusCode
             };
