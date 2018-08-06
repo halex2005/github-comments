@@ -21,6 +21,11 @@ namespace csharp.Controllers
         public ValuesController(IOptions<GithubSettings> githubSettings)
         {
             this.githubSettings = githubSettings;
+            if (this.githubSettings.Value == null)
+            {
+                throw new ArgumentException("Settings file absent", "githubSettings");
+            }
+
         }
 
         // GET api/values
