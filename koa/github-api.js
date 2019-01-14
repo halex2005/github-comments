@@ -29,19 +29,13 @@ const EnabledResponseHeaders = [
 function getUsableHeaders(headers) {
   return Object.keys(headers)
     .filter(h => !DisabledRequestHeaders.includes(h))
-    .reduce((acc, h) => ({
-      [h]: headers[h],
-      ...acc,
-    }), {})
+    .reduce((acc, h) => (Object.assign({ [h]: headers[h] }, acc)), {})
 }
 
 function getResponseHeaders(headers) {
   return Object.keys(headers)
     .filter(h => EnabledResponseHeaders.includes(h))
-    .reduce((acc, h) => ({
-      [h]: headers[h],
-      ...acc,
-    }), {})
+    .reduce((acc, h) => (Object.assign({ [h]: headers[h] }, acc)), {})
 }
 
 function tryParseBase64(value) {
@@ -55,7 +49,8 @@ function tryParseBase64(value) {
   }
 }
 
-function fetchGithubGraphQL(headers, repositoryQuery) {
+function fetchGithubGraphQL(headers, repositoryQuery, logger) {
+  const start = Date.now();
   const graphQlQuery = `
 query {
   repository(owner: "${settings.owner}", name: "${settings.repository}") {
@@ -75,27 +70,38 @@ query {
     method: 'POST',
     url: 'https://api.github.com/graphql',
     data: body,
-    headers: {
-      'Authorization': `bearer ${settings.authToken}`,
-      ...getUsableHeaders(headers)
-    }
+    headers: Object.assign(
+      { 'Authorization': `bearer ${settings.authToken}` },
+      getUsableHeaders(headers))
   }
   return fetch(request)
-    .then(response => ({
-      responseData: response.data,
-      responseHeaders: getResponseHeaders(response),
-      responseStatus: response.status,
-      responseStatusText: response.statusText,
-    }))
+    .then(response => {
+      const ms = Date.now() - start;
+      logger.info(
+        `GitHub request completed`,
+        {
+          status: response.status,
+          method: request.method,
+          url: request.url,
+          duration: ms,
+          qraphQl: repositoryQuery,
+          limits: response.data.rateLimit,
+        });
+      return ({
+        responseData: response.data,
+        responseHeaders: getResponseHeaders(response),
+        responseStatus: response.status,
+        responseStatusText: response.statusText,
+      })
+    })
 }
 
 const github = {
-  getPageComments({ query, headers, number }) {
+  getPageComments({ query, headers, number }, logger) {
     if (!(Math.floor(Number(number)) > 0)) {
       throw new Error("'number' is required integer query string parameter")
     }
 
-    console.log(query)
     const afterKey = query.after
     const afterKeyFilter = afterKey ? `, after: "${afterKey}"` : ''
     if (afterKey && !tryParseBase64(afterKey)) {
@@ -123,10 +129,10 @@ issue(number: ${number}) {
     }
   }
 }`
-    return fetchGithubGraphQL(headers, pageCommentsQuery)
+    return fetchGithubGraphQL(headers, pageCommentsQuery, logger)
   },
 
-  getListPageCommentsCountStats({ query, headers }) {
+  getListPageCommentsCountStats({ query, headers }, logger) {
     const pageSize = Number(query.pagesize) || 20
     const afterKey = query.after
     if (afterKey && !tryParseBase64(afterKey)) {
@@ -149,7 +155,7 @@ issues(first: ${pageSize}, orderBy:{direction:DESC, field:CREATED_AT}${afterKeyF
     }
   }
 }`
-    return fetchGithubGraphQL(headers, pageCommentsQuery)
+    return fetchGithubGraphQL(headers, pageCommentsQuery, logger)
   },
 }
 
