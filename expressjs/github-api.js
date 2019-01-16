@@ -77,16 +77,15 @@ query {
   return fetch(request)
     .then(response => {
       const ms = Date.now() - start;
-      logger.info(
-        `GitHub request completed`,
-        {
-          status: response.status,
-          method: request.method,
-          url: request.url,
-          duration: ms,
-          qraphQl: repositoryQuery,
-          limits: response.data.rateLimit,
-        });
+      logger.info('GraphQL request completed', {
+        url: request.url,
+        method: request.method,
+        status: response.status,
+        statusText: response.statusText,
+        graphQl: repositoryQuery,
+        duration: ms,
+        limits: response.data.data.rateLimit,
+      })
       return ({
         responseData: response.data,
         responseHeaders: getResponseHeaders(response),

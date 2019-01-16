@@ -1,12 +1,12 @@
 const express = require('express')
 const https = require('https')
 const http = require('http')
-const fetch = require('axios')
-const github = require('../koa/github-api')
-const winston = require('winston')
 const process = require('process')
-const settings = require('./settings')
+const winston = require('winston')
+const winstonLoggly = require('winston-loggly-bulk')
+const github = require('./github-api')
 
+const settings = require('./settings')
 const app = express()
 
 const logger = winston.createLogger({
@@ -27,14 +27,30 @@ const logger = winston.createLogger({
   ]
 })
 
+if (settings.loggly && settings.loggly.useLoggly) {
+  logger.add(new winston.transports.Loggly(settings.loggly))
+}
+
 // x-response-time
 
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', function() {
     const ms = Date.now() - start;
-    //res.set('X-Response-Time', `${ms}ms`)
-    logger.info(`[${ms}ms] HTTP ${res.statusCode} ${req.method} ${req.url}`);
+    logger.info(`Request completed`, {
+      duration: ms,
+      status: res.statusCode,
+      statusMessage: res.statusMessage,
+      hostname: req.get('host'),
+      method: req.method,
+      url: req.originalUrl,
+      remote: req.ip,
+      protocol: req.protocol,
+      useragent: req.get('user-agent'),
+      referer: req.get('Referrer'),
+      route: req.route.path,
+      routeParams: req.params
+    });
   })
   next();
 })
@@ -51,9 +67,9 @@ app.use((req, res, next) => {
 // router
 
 app.get('/page-comments/:number', (req, res) => github.getPageComments({
-  number: req.params.number,
   headers: req.headers,
   query: req.query,
+  number: req.params.number,
 }, logger)
   .then(({ responseData, responseHeaders, responseStatus }) => {
     res.set(responseHeaders)
@@ -67,25 +83,27 @@ app.get('/list-page-comments-count', (req, res) => github.getListPageCommentsCou
   }))
 
 if (settings['use-http-port-80']) {
-  app.listen(80, () => logger.info(`Application started, listening on port 80`))
+  app.listen(80, () => logger.info(`Application started`, { port: 80 }));
 }
 
 const portNumber = settings['listener-port']
 if (settings['use-listener-port'] && portNumber) {
-  app.listen(portNumber, () => logger.info(`Application started, listening on port ${portNumber}`))
+  app.listen(portNumber, () => logger.info(`Application started`, { port: portNumber }))
 }
 
 const processEnvPortNumber = process.env.PORT
 if (processEnvPortNumber) {
-  app.listen(processEnvPortNumber, () => logger.info(`Application started, listening on port ${processEnvPortNumber}`))
+  app.listen(processEnvPortNumber, () => logger.info(`Application started`, { port: processEnvPortNumber }))
 }
 
 process.on('exit', (code) => {
-  logger.info(`Process exit with code: ${code}`);
+  logger.info(`Process exit`, { code: code })
+  winstonLoggly.flushLogsAndExit()
 });
 
 function handle(signal) {
-  logger.info(`Signal received: ${signal}`);
+  logger.info(`Signal received`, { signal: signal })
+  winstonLoggly.flushLogsAndExit()
   process.exit()
 }
 

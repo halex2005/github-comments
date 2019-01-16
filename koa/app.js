@@ -2,11 +2,12 @@ const koa = require('koa')
 const _ = require('koa-route')
 const https = require('https')
 const http = require('http')
-const github = require('./github-api')
-const winston = require('winston')
 const process = require('process')
-const settings = require('./settings')
+const winston = require('winston')
+const winstonLoggly = require('winston-loggly-bulk')
+const github = require('../expressjs/github-api')
 
+const settings = require('./settings')
 const app = new koa()
 
 const logger = winston.createLogger({
@@ -27,6 +28,10 @@ const logger = winston.createLogger({
   ]
 })
 
+if (settings.loggly && settings.loggly.useLoggly) {
+  logger.add(new winston.transports.Loggly(settings.loggly))
+}
+
 // x-response-time
 
 app.use(async (ctx, next) => {
@@ -34,7 +39,19 @@ app.use(async (ctx, next) => {
   await next();
   const ms = Date.now() - start;
   ctx.set('X-Response-Time', `${ms}ms`);
-  logger.info(`[${ms}ms] HTTP ${ctx.statusCode} ${ctx.method} ${ctx.url}`);
+  logger.info(`Request completed`, {
+    duration: ms,
+    status: ctx.status,
+    statusMessage: ctx.message,
+    hostname: ctx.host,
+    method: ctx.method,
+    url: ctx.originalUrl,
+    remote: ctx.ip,
+    protocol: ctx.protocol,
+    useragent: ctx.get('user-agent'),
+    referer: ctx.get('Referrer'),
+    route: ctx.routePath,
+  });
 })
 
 // lowercase query string parameters
@@ -51,8 +68,8 @@ app.use(async (ctx, next) => {
 app.use(_.get('/page-comments/:number', (ctx, number) => github.getPageComments({
   headers: ctx.headers,
   query: ctx.query,
-  number
-})
+  number,
+}, logger)
   .then(({responseData, responseHeaders, responseStatus, responseStatusText}) => {
     ctx.status = responseStatus
     ctx.message = responseStatusText
@@ -63,7 +80,7 @@ app.use(_.get('/page-comments/:number', (ctx, number) => github.getPageComments(
     ctx.body = responseData
   })))
 
-app.use(_.get('/list-page-comments-count', ctx => github.getListPageCommentsCountStats(ctx)
+app.use(_.get('/list-page-comments-count', ctx => github.getListPageCommentsCountStats(ctx, logger)
   .then(({ responseData, responseHeaders, responseStatus, responseStatusText }) => {
     ctx.status = responseStatus
     ctx.message = responseStatusText
@@ -76,25 +93,27 @@ app.use(_.get('/list-page-comments-count', ctx => github.getListPageCommentsCoun
 ))
 
 if (settings['use-http-port-80']) {
-  app.listen(80, () => logger.info(`Application started, listening on port 80`))
+  app.listen(80, () => logger.info(`Application started`, { port: 80 }));
 }
 
 const portNumber = settings['listener-port']
 if (settings['use-listener-port'] && portNumber) {
-  app.listen(portNumber, () => logger.info(`Application started, listening on port ${portNumber}`))
+  app.listen(portNumber, () => logger.info(`Application started`, { port: portNumber }))
 }
 
 const processEnvPortNumber = process.env.PORT
 if (processEnvPortNumber) {
-  app.listen(processEnvPortNumber, () => logger.info(`Application started, listening on port ${processEnvPortNumber}`))
+  app.listen(processEnvPortNumber, () => logger.info(`Application started`, { port: processEnvPortNumber }))
 }
 
 process.on('exit', (code) => {
-  logger.info(`Process exit with code: ${code}`);
+  logger.info(`Process exit`, { code: code })
+  winstonLoggly.flushLogsAndExit()
 });
 
 function handle(signal) {
-  logger.info(`Signal received: ${signal}`);
+  logger.info(`Signal received`, { signal: signal })
+  winstonLoggly.flushLogsAndExit()
   process.exit()
 }
 
