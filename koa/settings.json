@@ -4,6 +4,7 @@
   "use-http-port-80": false,
   "owner": "halex2005",
   "repository": "temp-repo-for-issues",
+  "authToken": "PUT-YOUR-OAUTH-TOKEN-HERE",
   "loggly": {
     "useLoggly": false,
     "token": "PUT-YOUR-LOGGLY-TOKEN-HERE",
