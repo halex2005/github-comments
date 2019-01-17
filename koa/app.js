@@ -73,10 +73,10 @@ app.use(_.get('/page-comments/:number', (ctx, number) => github.getPageComments(
   .then(({responseData, responseHeaders, responseStatus, responseStatusText}) => {
     ctx.status = responseStatus
     ctx.message = responseStatusText
-    ctx.response.headers = {
-      ...ctx.response.headers,
-      ...responseHeaders,
-    }
+    ctx.response.headers = Object.assign(
+      {},
+      ctx.response.headers,
+      responseHeaders)
     ctx.body = responseData
   })))
 
@@ -84,10 +84,10 @@ app.use(_.get('/list-page-comments-count', ctx => github.getListPageCommentsCoun
   .then(({ responseData, responseHeaders, responseStatus, responseStatusText }) => {
     ctx.status = responseStatus
     ctx.message = responseStatusText
-    ctx.response.headers = {
-      ...ctx.response.headers,
-      ...responseHeaders,
-    }
+    ctx.response.headers = Object.assing(
+      {},
+      ctx.response.headers,
+      responseHeaders)
     ctx.body = responseData
   })
 ))
