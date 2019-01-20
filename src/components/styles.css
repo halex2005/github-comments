@@ -1,4 +1,5 @@
 .comments-list {
+  text-align: left;
   list-style: none;
 }
 
@@ -46,3 +47,4 @@
   border-style: none;
   display: inline-block;
 }
+
