@@ -1,14 +1,12 @@
 // @ts-ignore
-import * as Octokat from 'octokat'
 import * as React from 'react'
-import {GithubComment} from "./GithubComent";
-import {IGithubComment} from "./interfaces";
+import {GithubComment} from "./GithubComent"
+import {IGithubComment} from "./interfaces"
+import axios from 'axios'
 import './styles.css'
 
 interface IProps {
   apiRoot: string,
-  owner: string,
-  repository: string,
   issueNumber: string,
 }
 
@@ -22,7 +20,7 @@ interface IState {
 export class GithubCommentsView extends React.Component<IProps, IState> {
 
   public static defaultProps: Partial<IProps> = {
-    apiRoot: 'https://api.github.com'
+    apiRoot: 'https://codeofclimber.ru/api'
   }
 
   public state: IState = {
@@ -37,14 +35,7 @@ export class GithubCommentsView extends React.Component<IProps, IState> {
   }
 
   public componentDidMount() {
-    const octo = new Octokat({
-      rootURL: this.props.apiRoot,
-      acceptHeader: 'application/vnd.github.v3.html+json'
-    })
-    octo.repos(this.props.owner, this.props.repository)
-      .issues(this.props.issueNumber)
-      .comments
-      .fetch()
+    axios.get(this.props.apiRoot + `/page-comments/${this.props.issueNumber}`)
       .then(this.addComments)
   }
 
@@ -66,20 +57,22 @@ export class GithubCommentsView extends React.Component<IProps, IState> {
     )
   }
 
-  private addComments = (comments: any) => {
-    const newComments = this.state.comments.concat(comments.items.map((comment: any) => ({
+  private addComments = (pageCommentsResponse: any) => {
+    const response = pageCommentsResponse.data;
+    const pageComments = response.data.repository.issue.comments;
+    const newComments = this.state.comments.concat(pageComments.nodes.map((comment: any) => ({
       id: comment.id,
-      createdAt: comment.createdAt,
-      body: comment.bodyHtml || comment.body,
-      userLogin: comment.user.login,
-      userUrl: comment.user.htmlUrl,
-      userAvatar: comment.user.avatarUrl
+      createdAt: new Date(comment.createdAt),
+      body: comment.bodyHTML,
+      userLogin: comment.author.login,
+      userUrl: comment.author.url,
+      userAvatar: comment.author.avatarUrl
     })))
     this.setState({
       showLoader: false,
       comments: newComments,
-      nextComments: comments.nextPage,
-      canShowMoreComments: !!comments.nextPage,
+      nextComments: pageComments.pageInfo.endCursor,
+      canShowMoreComments: !!pageComments.pageInfo.hasNextPage,
     })
   }
 
