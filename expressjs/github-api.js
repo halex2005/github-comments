@@ -118,6 +118,7 @@ issue(number: ${number}) {
       hasNextPage
     }
     nodes {
+      id
       bodyHTML
       createdAt
       author {

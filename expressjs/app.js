@@ -1,6 +1,4 @@
 const express = require('express')
-const https = require('https')
-const http = require('http')
 const process = require('process')
 const winston = require('winston')
 const winstonLoggly = require('winston-loggly-bulk')
@@ -14,7 +12,7 @@ const logger = winston.createLogger({
   handleExceptions: true,
   format: winston.format.combine(
     winston.format.timestamp(),
-    winston.format.json(),
+    winston.format.json()
   ),
   transports: [
     new winston.transports.Console(),
@@ -55,6 +53,14 @@ app.use((req, res, next) => {
   next();
 })
 
+// enable CORS
+
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 // lowercase query string parameters
 
 app.use((req, res, next) => {
@@ -66,6 +72,8 @@ app.use((req, res, next) => {
 
 // router
 
+// supported query parameters:
+// - after
 app.get('/page-comments/:number', (req, res) => github.getPageComments({
   headers: req.headers,
   query: req.query,
