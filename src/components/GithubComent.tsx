@@ -12,7 +12,7 @@ export function GithubComment({ comment }: { comment: IGithubComment }) {
           <strong>
             <a href={comment.userUrl} rel="nofollow">{comment.userLogin}</a>
           </strong>
-          commented
+          {' '}commented{' '}
           <a href={'#issue-comment-' + comment.id} className="timestamp" rel="nofollow">
             <RelativeTime date={comment.createdAt} />
           </a>
@@ -24,4 +24,3 @@ export function GithubComment({ comment }: { comment: IGithubComment }) {
     </li>
   )
 }
-
