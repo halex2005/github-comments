@@ -4,6 +4,7 @@ import { observer } from 'mobx-react'
 import {GithubComment} from "./GithubComent"
 import './styles.css'
 import { GithubIssueCommentsProvider } from '../api/GithubIssueCommentsProvider';
+import { CallbackOnVisibleOnce } from './CallbackOnVisibleOnce';
 
 interface IProps {
   provider: GithubIssueCommentsProvider
@@ -12,7 +13,7 @@ interface IProps {
 export const GithubCommentsView = observer(
   (props: IProps) => {
     return (
-      <div>
+      <CallbackOnVisibleOnce trigger={props.provider.loadMoreComments}>
         <ul className="comments-list">
           {props.provider.Comments.map(c => <GithubComment comment={c} key={c.id}/>)}
         </ul>
@@ -21,9 +22,12 @@ export const GithubCommentsView = observer(
             <div>
               <i className="fa fa-spin fa-spinner fa-fw fa-2x"/>
               <span className="sr-only">Loading...</span>
-            </div>)
-          : (props.provider.CanShowMoreComments ? <button onClick={props.provider.loadMoreComments}>Show more comments</button> : null)
+            </div>
+          )
+          : (props.provider.CanShowMoreComments
+            ? <button onClick={props.provider.loadMoreComments}>Show more comments</button>
+            : null)
         }
-      </div>
+      </CallbackOnVisibleOnce>
     )
   })

@@ -19,7 +19,7 @@ export interface IGithubComment {
 export class GithubIssueCommentsProvider {
   @observable public CommentsTotalCount: number = 0
   @observable public Comments: IGithubComment[] = []
-  @observable public CanShowMoreComments: boolean = false
+  @observable public CanShowMoreComments: boolean = true
   @observable public FetchInProgress: boolean = false
   @observable public HasError: boolean = false
   @observable public ErrorMessage: string = ''
@@ -33,6 +33,12 @@ export class GithubIssueCommentsProvider {
 
   @action.bound
   public loadMoreComments() {
+    if (this.FetchInProgress) {
+      return Promise.reject('fetch in progress')
+    }
+    if (!this.CanShowMoreComments) {
+      return Promise.reject('no more comments to fetch')
+    }
     this.FetchInProgress = true
 
     return axios
