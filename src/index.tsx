@@ -1,11 +1,16 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import App from './App';
 import './index.css';
-import registerServiceWorker from './registerServiceWorker';
+import { GithubCommentsView } from './components/GithubCommentsView';
+import { GithubIssueCommentsProvider } from './api/GithubIssueCommentsProvider';
 
-ReactDOM.render(
-  <App />,
-  document.getElementById('root') as HTMLElement
-);
-registerServiceWorker();
+
+global.GitHubComments = {
+  renderPageComments(element: HTMLElement, apiRoot: string, issueNumber: number) {
+    const provider = new GithubIssueCommentsProvider({
+      apiRoot: apiRoot,
+      issueNumber: issueNumber
+    })
+    ReactDOM.render(<GithubCommentsView provider={provider} />, element)
+  }
+}

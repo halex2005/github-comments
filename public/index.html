@@ -37,5 +37,13 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+    <script>
+      window.addEventListener('load', () => {
+        window.GitHubComments.renderPageComments(
+          document.getElementById('root'),
+          'http://localhost:4000',
+          1)
+      });
+    </script>
   </body>
 </html>
