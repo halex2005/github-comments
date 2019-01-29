@@ -1,5 +1,6 @@
 // @ts-ignore
-import { observable, action } from 'mobx'
+import {observable, action, computed} from 'mobx'
+import { IGithubCommentInfo, IIssueCommentsCountProvider } from './IIssueCommentsCountProvider'
 import axios from 'axios'
 
 export interface IGithubOptions {
@@ -16,13 +17,20 @@ export interface IGithubComment {
   userAvatar: string,
 }
 
-export class GithubIssueCommentsProvider {
+export class GithubIssueCommentsProvider implements IIssueCommentsCountProvider {
   @observable public CommentsTotalCount: number = 0
   @observable public Comments: IGithubComment[] = []
   @observable public CanShowMoreComments: boolean = true
   @observable public FetchInProgress: boolean = false
   @observable public HasError: boolean = false
   @observable public ErrorMessage: string = ''
+  @observable public DirectIssueLink: string = ''
+  @computed.struct public get CommentInfo(): IGithubCommentInfo {
+    return {
+      totalCount: this.CommentsTotalCount,
+      issueUrl: this.DirectIssueLink
+    }
+  }
 
   private nextAfterKey = ''
   private options: IGithubOptions
@@ -46,6 +54,10 @@ export class GithubIssueCommentsProvider {
       .then(this.onLoadMoreCommentsSuccess, this.onLoadMoreCommentsError)
   }
 
+  public getCommentsCountForIssue(issueNumber: number): IGithubCommentInfo {
+    return this.CommentInfo
+  }
+
   @action.bound
   private onLoadMoreCommentsSuccess(response: any) {
     this.FetchInProgress = false
@@ -65,6 +77,7 @@ export class GithubIssueCommentsProvider {
     this.Comments = newComments
     this.CommentsTotalCount = pageComments.totalCount
     this.CanShowMoreComments = !!pageComments.pageInfo.hasNextPage
+    this.DirectIssueLink = responseData.data.repository.issue.url
     this.nextAfterKey = `?after=${pageComments.pageInfo.endCursor}`
 
     return newComments

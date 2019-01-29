@@ -26,6 +26,14 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div>
+      <div>Index page comments:</div>
+      <div name="comments-count" data-issue-number="1">#1</div>
+      <div name="comments-count" data-issue-number="2">#2</div>
+      <div name="comments-count" data-issue-number="3">#3</div>
+    </div>
+    <div>Single issue #1:</div>
+    <div id="comments-count-root"></div>
     <div id="root"></div>
     <!--
       This HTML file is a template.
@@ -39,10 +47,13 @@
     -->
     <script>
       window.addEventListener('load', () => {
+        var apiRoot = 'http://localhost:4000';
+        window.GitHubComments.renderIndexPageCommentsCount('comments-count', apiRoot);
         window.GitHubComments.renderPageComments(
           document.getElementById('root'),
-          'http://localhost:4000',
-          1)
+          document.getElementById('comments-count-root'),
+          apiRoot,
+          1);
       });
     </script>
   </body>
