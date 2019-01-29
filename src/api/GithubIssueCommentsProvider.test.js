@@ -1,23 +1,22 @@
 import { GithubIssueCommentsProvider } from './GithubIssueCommentsProvider'
-import sinon from 'sinon'
-import axios from 'axios';
+
+jest.mock('axios')
+import axios from 'axios'
 
 describe('github comments provider will load more comments', () => {
   describe('server returns no comments', () => {
     const provider = new GithubIssueCommentsProvider({ apiRoot: '', issueNumber: 1 });
 
     beforeAll(() => {
-      sinon.replace(axios, 'get', sinon.fake.resolves(getPageCommentsResultNoComments()))
+      axios.get.mockResolvedValue(getPageCommentsResultNoComments())
       return provider.loadMoreComments()
     })
 
-    afterAll(() => {
-      sinon.restore()
-    })
+    afterAll(() => axios.get.mockReset())
 
     it('network call shoud be made', () => {
-      expect(axios.get.calledOnce).toBeTruthy()
-      expect(axios.get.firstCall.args[0]).toEqual('/api/page-comments/1')
+      expect(axios.get.mock.calls.length).toEqual(1)
+      expect(axios.get.mock.calls[0][0]).toEqual('/api/page-comments/1')
     })
     it ('comments should be empty', () => {
       expect(provider.Comments.length).toEqual(0)
@@ -34,17 +33,15 @@ describe('github comments provider will load more comments', () => {
     const provider = new GithubIssueCommentsProvider({ apiRoot: '', issueNumber: 2 });
 
     beforeAll(() => {
-      sinon.replace(axios, 'get', sinon.fake.resolves(getPageCommentsResult(3)))
+      axios.get.mockResolvedValue(getPageCommentsResult(3))
       return provider.loadMoreComments()
     })
 
-    afterAll(() => {
-      sinon.restore()
-    })
+    afterAll(() => axios.get.mockReset())
 
     it('network call shoud be made', () => {
-      expect(axios.get.calledOnce).toBeTruthy()
-      expect(axios.get.firstCall.args[0]).toEqual('/api/page-comments/2')
+      expect(axios.get.mock.calls.length).toEqual(1)
+      expect(axios.get.mock.calls[0][0]).toEqual('/api/page-comments/2')
     })
     it ('comments should be empty', () => {
       expect(provider.Comments.length).toEqual(3)
@@ -61,13 +58,15 @@ describe('github comments provider will load more comments', () => {
     const provider = new GithubIssueCommentsProvider({ apiRoot: '', issueNumber: 2 });
 
     beforeAll(() => {
-      sinon.replace(axios, 'get', sinon.fake.resolves(getPageCommentsResult(15)))
+      axios.get.mockResolvedValue(getPageCommentsResult(15))
       return provider.loadMoreComments()
     })
 
+    afterAll(() => axios.get.mockReset())
+
     it('network call shoud be made', () => {
-      expect(axios.get.calledOnce).toBeTruthy()
-      expect(axios.get.firstCall.args[0]).toEqual('/api/page-comments/2')
+      expect(axios.get.mock.calls.length).toEqual(1)
+      expect(axios.get.mock.calls[0][0]).toEqual('/api/page-comments/2')
     })
     it ('comments should be filled with first page', () => {
       expect(provider.Comments.length).toEqual(5)
@@ -83,23 +82,24 @@ describe('github comments provider will load more comments', () => {
       beforeAll(() => {
         return provider.loadMoreComments()
       })
+
+      afterAll(() => axios.get.reset())
+
       it('network call with after key shoud be made', () => {
-        expect(axios.get.calledTwice).toBeTruthy()
-        expect(axios.get.secondCall.args[0]).toEqual('/api/page-comments/2?after=Y3Vyc29yOnYyOpHOGR-O7w==')
+        expect(axios.get.mock.calls.length).toEqual(2)
+        expect(axios.get.mock.calls[1][0]).toEqual('/api/page-comments/2?after=Y3Vyc29yOnYyOpHOGR-O7w==')
       })
+
       it('comments should be concatenated with second page', () => {
         expect(provider.Comments.length).toEqual(10)
         expect(provider.CommentsTotalCount).toEqual(15)
       })
+
       it ('check supplementary state has multiple pages', () => {
         expect(provider.CanShowMoreComments).toEqual(true)
         expect(provider.FetchInProgress).toEqual(false)
         expect(provider.HasError).toEqual(false)
       })
-    })
-
-    afterAll(() => {
-      sinon.restore()
     })
   })
 
@@ -107,24 +107,23 @@ describe('github comments provider will load more comments', () => {
     const provider = new GithubIssueCommentsProvider({ apiRoot: '', issueNumber: 3 });
 
     beforeAll(() => {
-      sinon.replace(axios, 'get', sinon.fake.returns(getErrorStatusCodeResult(400)))
+      axios.get.mockRejectedValue(getErrorStatusCodeResult(400))
       return provider.loadMoreComments().then(() => {}, () => {})
     })
 
-    afterAll(() => {
-      sinon.restore()
-    })
+    afterAll(() => axios.get.mockReset())
 
     it('network call shoud be made', () => {
-      expect(axios.get.calledOnce).toBeTruthy()
-      expect(axios.get.firstCall.args[0]).toEqual('/api/page-comments/3')
+      expect(axios.get.mock.calls.length).toEqual(1)
+      expect(axios.get.mock.calls[0][0]).toEqual('/api/page-comments/3')
     })
+
     it ('comments should be empty', () => {
       expect(provider.Comments.length).toEqual(0)
       expect(provider.CommentsTotalCount).toEqual(0)
     })
+
     it ('check supplementary state with error', () => {
-      expect(provider.CanShowMoreComments).toEqual(false)
       expect(provider.FetchInProgress).toEqual(false)
       expect(provider.HasError).toEqual(true)
       expect(provider.ErrorMessage).toEqual('error happens')
@@ -135,24 +134,23 @@ describe('github comments provider will load more comments', () => {
     const provider = new GithubIssueCommentsProvider({ apiRoot: '', issueNumber: 5 });
 
     beforeAll(() => {
-      sinon.replace(axios, 'get', sinon.fake.returns(new Promise((resolve, reject) => {})))
+      axios.get.mockReturnValue(new Promise((resolve, reject) => {}))
       provider.loadMoreComments().then(() => {}, () => {})
     })
 
-    afterAll(() => {
-      sinon.restore()
-    })
+    afterAll(() => axios.get.mockReset())
 
     it('network call shoud be made', () => {
-      expect(axios.get.calledOnce).toBeTruthy()
-      expect(axios.get.firstCall.args[0]).toEqual('/api/page-comments/5')
+      expect(axios.get.mock.calls.length).toEqual(1)
+      expect(axios.get.mock.calls[0][0]).toEqual('/api/page-comments/5')
     })
+
     it ('comments should be empty', () => {
       expect(provider.Comments.length).toEqual(0)
       expect(provider.CommentsTotalCount).toEqual(0)
     })
+
     it ('check supplementary state is pending', () => {
-      expect(provider.CanShowMoreComments).toEqual(false)
       expect(provider.FetchInProgress).toEqual(true)
       expect(provider.HasError).toEqual(false)
     })
@@ -189,7 +187,7 @@ function getPageCommentsResultNoComments() {
   }
 }
 
-function getPageCommentsResult(commentsCount: number) {
+function getPageCommentsResult(commentsCount) {
   const hasNextPage = commentsCount > 5
   const returnedCommentsCount = commentsCount > 5 ? 5 : commentsCount
   var comments = new Array(returnedCommentsCount).map((x, i) => ({
@@ -232,12 +230,12 @@ function getPageCommentsResult(commentsCount: number) {
   }
 }
 
-function getErrorStatusCodeResult(statusCode: number, data?: any) {
-  return Promise.reject({
+function getErrorStatusCodeResult(statusCode, data) {
+  return {
     message: 'error happens',
     response: {
       status: statusCode,
       data: data
     }
-  })
+  }
 }
