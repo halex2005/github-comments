@@ -46,7 +46,7 @@ app.use((req, res, next) => {
       protocol: req.protocol,
       useragent: req.get('user-agent'),
       referer: req.get('Referrer'),
-      route: req.route.path,
+      route: req.route && req.route.path,
       routeParams: req.params
     });
   })
@@ -60,6 +60,10 @@ app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
+
+// enable body parsing
+
+app.use(express.json());
 
 // lowercase query string parameters
 
@@ -84,7 +88,7 @@ app.get('/page-comments/:number', (req, res) => github.getPageComments({
     res.status(responseStatus).send(responseData)
   }))
 
-app.get('/list-page-comments-count', (req, res) => github.getListPageCommentsCountStats(req, logger)
+app.post('/index-page-comments-count', (req, res) => github.getListPageCommentsCountStats(req, logger)
   .then(({ responseData, responseHeaders, responseStatus }) => {
     res.set(responseHeaders)
     res.status(responseStatus).send(responseData)

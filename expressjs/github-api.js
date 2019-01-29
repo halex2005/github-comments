@@ -84,7 +84,7 @@ query {
         statusText: response.statusText,
         graphQl: repositoryQuery,
         duration: ms,
-        limits: response.data.data.rateLimit,
+        limits: response.data.data && response.data.data.rateLimit,
       })
       return ({
         responseData: response.data,
@@ -132,29 +132,17 @@ issue(number: ${number}) {
     return fetchGithubGraphQL(headers, pageCommentsQuery, logger)
   },
 
-  getListPageCommentsCountStats({ query, headers }, logger) {
-    const pageSize = Number(query.pagesize) || 20
-    const afterKey = query.after
-    if (afterKey && !tryParseBase64(afterKey)) {
-      throw new Error("'after' query string parameter must be base64-encoded string")
-    }
-    const afterKeyFilter = afterKey ? `, after: "${afterKey}"` : ''
-    const pageCommentsQuery = `
-issues(first: ${pageSize}, orderBy:{direction:DESC, field:CREATED_AT}${afterKeyFilter}) {
-  totalCount
-  pageInfo {
-    startCursor
-    endCursor
-    hasNextPage
+  getListPageCommentsCountStats({ headers, body }, logger) {
+    const issueNumberCommentQueries = body
+      .issues
+      .map(i => `
+issue${i}: issue(number: ${i}) {
+  url
+  comments {
+    totalCount
   }
-  nodes {
-    number
-    title
-    comments {
-      totalCount
-    }
-  }
-}`
+}`)
+    const pageCommentsQuery = issueNumberCommentQueries.join('')
     return fetchGithubGraphQL(headers, pageCommentsQuery, logger)
   },
 }
