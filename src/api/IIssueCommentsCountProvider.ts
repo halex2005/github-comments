@@ -4,5 +4,6 @@ export interface IGithubCommentInfo {
 }
 
 export interface IIssueCommentsCountProvider {
+  FetchInProgress: boolean
   getCommentsCountForIssue(issueNumber: string): IGithubCommentInfo
 }

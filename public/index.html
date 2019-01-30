@@ -28,9 +28,9 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div>
       <div>Index page comments:</div>
-      <div name="comments-count" data-issue-number="1">#1</div>
-      <div name="comments-count" data-issue-number="2">#2</div>
-      <div name="comments-count" data-issue-number="3">#3</div>
+      <div name="comments-count" data-issue-number="1" data-comments-link="#comments">#1</div>
+      <div name="comments-count" data-issue-number="2" data-comments-link="#comments">#2</div>
+      <div name="comments-count" data-issue-number="3" data-comments-link="#comments">#3</div>
     </div>
     <div>Single issue #1:</div>
     <div id="comments-count-root"></div>
@@ -53,7 +53,8 @@
           document.getElementById('root'),
           document.getElementById('comments-count-root'),
           apiRoot,
-          '1');
+          '1',
+          '#comments');
       });
     </script>
   </body>
