@@ -77,21 +77,43 @@ query {
   return fetch(request)
     .then(response => {
       const ms = Date.now() - start;
-      logger.info('GraphQL request completed', {
-        url: request.url,
-        method: request.method,
-        status: response.status,
-        statusText: response.statusText,
-        graphQl: repositoryQuery,
-        duration: ms,
-        limits: response.data.data && response.data.data.rateLimit,
-      })
-      return ({
-        responseData: response.data,
-        responseHeaders: getResponseHeaders(response),
-        responseStatus: response.status,
-        responseStatusText: response.statusText,
-      })
+      if (response.data.errors) {
+        logger.warn('GraphQL request has errors', {
+          url: request.url,
+          method: request.method,
+          status: response.status,
+          statusText: response.statusText,
+          errors: response.data.errors,
+          graphQl: repositoryQuery,
+          duration: ms,
+          limits: response.data.data && response.data.data.rateLimit,
+        })
+      } else {
+        logger.info('GraphQL request completed', {
+          url: request.url,
+          method: request.method,
+          status: response.status,
+          statusText: response.statusText,
+          errors: response.data.errors,
+          graphQl: graphQlQuery,
+          duration: ms,
+          limits: response.data.data && response.data.data.rateLimit,
+        })
+      }
+
+      return response.data.data
+        ? ({
+          responseData: response.data,
+          responseHeaders: getResponseHeaders(response),
+          responseStatus: response.status,
+          responseStatusText: response.statusText,
+        })
+        : ({
+          responseData: response.data,
+          responseHeaders: getResponseHeaders(response),
+          responseStatus: 400,
+          responseStatusText: 'Bad Request',
+        })
     })
 }
 
@@ -143,7 +165,20 @@ issue${i}: issue(number: ${i}) {
   }
 }`)
     const pageCommentsQuery = issueNumberCommentQueries.join('')
+
     return fetchGithubGraphQL(headers, pageCommentsQuery, logger)
+      .then(response => {
+        if (response.responseData
+          && response.responseData.data
+          && response.responseData.data.repository) {
+          const repository = response.responseData.data.repository
+          for (const issueKey in repository) {
+            const issueNumber = issueKey.replace('issue', '')
+            delete Object.assign(repository, {[issueNumber]: repository[issueKey] })[issueKey]
+          }
+        }
+        return response
+      })
   },
 }
 
