@@ -1,14 +1,15 @@
 import React from 'react'
-import {IGithubCommentInfo, IIssueCommentsCountProvider} from "../api/IIssueCommentsCountProvider";
+import {IIssueCommentsCountProvider} from "../api/IIssueCommentsCountProvider";
 import {observer} from "mobx-react";
 
 interface IProps {
   provider: IIssueCommentsCountProvider,
-  commentInfo: IGithubCommentInfo
+  issueNumber: string
 }
 
 export const GithubCommentsCountView = observer(
-  function ({provider, commentInfo}: IProps) {
+  function ({provider, issueNumber}: IProps) {
+    const commentInfo = provider.getCommentsCountForIssue(issueNumber)
     return (
       <a href={commentInfo.issueUrl}>{`${commentInfo.totalCount} comments`}</a>
     )

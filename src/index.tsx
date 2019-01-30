@@ -8,13 +8,13 @@ import {GithubIndexPageIssueCommentsProvider} from "./api/GithubIndexPageIssueCo
 
 
 global.GitHubComments = {
-  renderPageComments(element: HTMLElement, commentsCountElement: HTMLElement, apiRoot: string, issueNumber: number) {
+  renderPageComments(element: HTMLElement, commentsCountElement: HTMLElement, apiRoot: string, issueNumber: string) {
     const provider = new GithubIssueCommentsProvider({
       apiRoot: apiRoot,
       issueNumber: issueNumber
     })
     provider.loadMoreComments()
-    ReactDOM.render(<GithubCommentsCountView provider={provider} commentInfo={provider.getCommentsCountForIssue(issueNumber)}/>, commentsCountElement)
+    ReactDOM.render(<GithubCommentsCountView provider={provider} issueNumber={issueNumber}/>, commentsCountElement)
     ReactDOM.render(<GithubCommentsView provider={provider} />, element)
   },
 
@@ -22,29 +22,14 @@ global.GitHubComments = {
     let dataIssueNumberAttributeName = 'data-issue-number';
     const elements = document.getElementsByName(elementsDataName)
 
-    let issueNumbers: number[] = []
+    const provider = new GithubIndexPageIssueCommentsProvider({ apiRoot: apiRoot })
 
     for (let i = 0; i < elements.length; i++) {
       const e = elements[i]
       const issueNumberAttribute = e.attributes.getNamedItem(dataIssueNumberAttributeName)
       if (issueNumberAttribute) {
-        const issueNumber = Number(issueNumberAttribute.value)
-        issueNumbers.push(issueNumber)
-      }
-    }
-
-    const provider = new GithubIndexPageIssueCommentsProvider({
-      apiRoot: apiRoot,
-      issueNumbers: issueNumbers
-    })
-
-    for (let i = 0; i < elements.length; i++) {
-      const e = elements[i]
-      const issueNumberAttribute = e.attributes.getNamedItem(dataIssueNumberAttributeName)
-      if (issueNumberAttribute) {
-        const issueNumber = Number(issueNumberAttribute.value)
-        const commentInfo = provider.getCommentsCountForIssue(issueNumber)
-        ReactDOM.render(<GithubCommentsCountView provider={provider} commentInfo={commentInfo}/>, e)
+        const issueNumber = issueNumberAttribute.value
+        ReactDOM.render(<GithubCommentsCountView provider={provider} issueNumber={issueNumber}/>, e)
       }
     }
 

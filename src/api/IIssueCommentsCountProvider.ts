@@ -4,5 +4,5 @@ export interface IGithubCommentInfo {
 }
 
 export interface IIssueCommentsCountProvider {
-  getCommentsCountForIssue(issueNumber: number): IGithubCommentInfo
+  getCommentsCountForIssue(issueNumber: string): IGithubCommentInfo
 }

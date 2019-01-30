@@ -12,7 +12,7 @@ class App extends React.Component {
     super(props)
     this.provider = new GithubIssueCommentsProvider({
       apiRoot: "http://localhost:4000",
-      issueNumber: 1
+      issueNumber: "1"
     })
     this.provider.loadMoreComments()
   }

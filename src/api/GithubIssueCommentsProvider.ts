@@ -5,7 +5,7 @@ import axios from 'axios'
 
 export interface IGithubOptions {
   apiRoot: string,
-  issueNumber: number,
+  issueNumber: string,
 }
 
 export interface IGithubComment {
@@ -54,7 +54,7 @@ export class GithubIssueCommentsProvider implements IIssueCommentsCountProvider 
       .then(this.onLoadMoreCommentsSuccess, this.onLoadMoreCommentsError)
   }
 
-  public getCommentsCountForIssue(issueNumber: number): IGithubCommentInfo {
+  public getCommentsCountForIssue(issueNumber: string): IGithubCommentInfo {
     return this.CommentInfo
   }
 

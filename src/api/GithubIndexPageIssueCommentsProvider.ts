@@ -1,26 +1,26 @@
 import axios from 'axios'
 import {action, observable} from "mobx";
-import {IIssueCommentsCountProvider, IGithubCommentInfo} from "./IIssueCommentsCountProvider";
+import {IGithubCommentInfo, IIssueCommentsCountProvider} from "./IIssueCommentsCountProvider";
 
 export interface IIndexPageIssuesOptions {
-  apiRoot: string,
-  issueNumbers: number[]
+  apiRoot: string
 }
 
 export class GithubIndexPageIssueCommentsProvider implements IIssueCommentsCountProvider {
   private options: IIndexPageIssuesOptions
 
-  @observable public Issues: Map<number, IGithubCommentInfo>
+  @observable public Issues = new Map<string, IGithubCommentInfo>()
+  @observable public FetchInProgress: boolean = false
+  @observable public HasError = false
+  @observable public ErrorMessage = ''
 
   constructor(options: IIndexPageIssuesOptions) {
     this.options = options
-    this.Issues = new Map<number, IGithubCommentInfo>()
-    options.issueNumbers.forEach(issue => this.Issues.set(issue, observable({ totalCount: 0, issueUrl: '' })))
   }
 
-  getCommentsCountForIssue(issueNumber: number): IGithubCommentInfo {
+  getCommentsCountForIssue(issueNumber: string): IGithubCommentInfo {
     if (!this.Issues.has(issueNumber)) {
-      this.Issues.set(issueNumber, observable({ totalCount: 0, issueUrl: '' }))
+      this.Issues.set(issueNumber, { totalCount: 0, issueUrl: '' })
     }
     // @ts-ignore
     return this.Issues.get(issueNumber);
@@ -28,32 +28,41 @@ export class GithubIndexPageIssueCommentsProvider implements IIssueCommentsCount
 
   @action.bound
   public loadCommentsCount() {
+    if (this.FetchInProgress) {
+      return Promise.reject('fetch laready in progress')
+    }
+    this.FetchInProgress = true
     return axios
       .post(
         `${this.options.apiRoot || '/api'}/index-page-comments-count`,
-        {issues: this.options.issueNumbers})
+        {issues: Array.from(this.Issues.keys())})
       .then(this.onLoadCommentsCountSuccess, this.onLoadCommentsCountError)
   }
 
   @action.bound
   public onLoadCommentsCountSuccess(response: any) {
+    this.FetchInProgress = false
+    this.HasError = false
+    this.ErrorMessage = ''
+
     const responseData = response.data;
     const repository = responseData.data.repository;
     for (const issueKey in repository) {
-      const issueNumber = Number(issueKey.replace('issue', ''))
-      let commentInfo = this.Issues.get(issueNumber)
-      if (!commentInfo) {
-        commentInfo = observable({ totalCount: 0, url: '' })
-        this.Issues.set(issueNumber, commentInfo)
-      }
+      const commentInfo = this.getCommentsCountForIssue(issueKey)
       const issue = repository[issueKey]
-      commentInfo.totalCount = issue.comments.totalCount
-      commentInfo.issueUrl = issue.url
+      if (issue) {
+        commentInfo.totalCount = (issue.comments && issue.comments.totalCount) || 0
+        commentInfo.issueUrl = issue.url
+      }
     }
   }
 
   @action.bound
   public onLoadCommentsCountError(error: any) {
-
+    this.FetchInProgress = false
+    this.HasError = true
+    this.ErrorMessage = error.errors
+      && error.errors.map((e: any) => e.message).join(', ')
+      || 'request completed with error'
   }
 }
