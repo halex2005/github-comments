@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import './index.css'
 import {GithubCommentsView} from './components/GithubCommentsView'
 import {GithubIssueCommentsProvider} from './api/GithubIssueCommentsProvider'
 import {GithubCommentsCountView} from './components/GithubCommentsCountView'
@@ -19,13 +18,18 @@ global.GitHubComments = {
       issueNumber: issueNumber
     })
     provider.loadMoreComments()
-    ReactDOM.render((
-      <GithubCommentsCountView
-        provider={provider}
-        issueNumber={issueNumber}
-        commentsLink={commentsLink}
-      />), commentsCountElement)
-    ReactDOM.render(<GithubCommentsView provider={provider}/>, element)
+    if (commentsCountElement) {
+      ReactDOM.render((
+        <GithubCommentsCountView
+          provider={provider}
+          issueNumber={issueNumber}
+          commentsLink={commentsLink}
+        />), commentsCountElement)
+    }
+
+    if (element) {
+      ReactDOM.render(<GithubCommentsView provider={provider}/>, element)
+    }
   },
 
   renderIndexPageCommentsCount(elementsDataName: string, apiRoot: string) {
