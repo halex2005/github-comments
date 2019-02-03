@@ -1,20 +1,12 @@
 // @ts-ignore
 import {observable, action, computed} from 'mobx'
-import { IGithubCommentInfo, IIssueCommentsCountProvider } from './IIssueCommentsCountProvider'
 import axios from 'axios'
+import { IGithubCommentInfo, IIssueCommentsCountProvider } from './IIssueCommentsCountProvider'
+import {IGithubComment} from '../components/interfaces'
 
 export interface IGithubOptions {
   apiRoot: string,
   issueNumber: string,
-}
-
-export interface IGithubComment {
-  id: string,
-  createdAt: Date,
-  body: string,
-  userLogin: string,
-  userUrl: string,
-  userAvatar: string,
 }
 
 export class GithubIssueCommentsProvider implements IIssueCommentsCountProvider {
@@ -68,6 +60,7 @@ export class GithubIssueCommentsProvider implements IIssueCommentsCountProvider 
     const pageComments = responseData.data.repository.issue.comments;
     const newComments = this.Comments.concat(pageComments.nodes.map((comment: any): IGithubComment => ({
       id: comment.id,
+      url: comment.url,
       createdAt: new Date(comment.createdAt),
       body: comment.bodyHTML,
       userLogin: comment.author.login,

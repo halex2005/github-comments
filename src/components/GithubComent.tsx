@@ -16,6 +16,10 @@ export function GithubComment({ comment }: { comment: IGithubComment }) {
           <a href={'#issue-comment-' + comment.id} className="timestamp" rel="nofollow">
             <RelativeTime date={comment.createdAt} />
           </a>
+          {' '}
+          <a href={comment.url} aria-disabled={true} className="view-on-github">
+            <i className="fa fa-github"/>
+          </a>
         </h3>
         <div className="content">
           <div dangerouslySetInnerHTML={{ __html: comment.body}} className="content-child"/>

@@ -1,5 +1,6 @@
 export interface IGithubComment {
   id: string,
+  url: string,
   createdAt: Date,
   body: string,
   userLogin: string,

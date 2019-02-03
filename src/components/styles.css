@@ -1,10 +1,25 @@
 .comments-list {
   text-align: left;
   list-style: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 0;
+  margin: 0;
 }
 
 .comment-block {
-  margin: 20px 20px 20px 80px;
+  padding: 10px 0 10px 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.comment-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .comment-container .header {
@@ -19,7 +34,7 @@
 
 .comment-container .content {
   background-color: cornsilk;
-  padding: 0 15px 0 15px;
+  padding: 15px 15px 0 15px;
   border: #ffa0a0 solid 1px;
   margin: 0;
 }
@@ -33,18 +48,29 @@
 }
 
 .avatar-container {
+  display: flex;
   border-radius: 5px;
-  float: left;
-  position: relative;
-  margin-left: -65px;
+  width: 100px;
+  height: 100%;
 }
 
 .avatar {
-  width: 50px;
-  height: 50px;
+  width: 80px;
+  height: 80px;
   vertical-align: middle;
   border-radius: 5px;
   border-style: none;
   display: inline-block;
 }
 
+/* small screens */
+@media all and (max-width: 500px) {
+  .avatar {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+.view-on-github {
+  color: black;
+}

@@ -24,7 +24,7 @@ export const GithubCommentsView = observer(
             </div>
           )
           : (props.provider.CanShowMoreComments
-            ? <button onClick={props.provider.loadMoreComments}>Show more comments</button>
+            ? <button className="btn btn-primary" onClick={props.provider.loadMoreComments}>Show more comments</button>
             : null)
         }
       </div>

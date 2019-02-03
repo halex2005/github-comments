@@ -11,7 +11,6 @@ global.GitHubComments = {
     commentsCountElement: HTMLElement,
     apiRoot: string,
     issueNumber: string,
-    commentsLink: string
   ) {
     const provider = new GithubIssueCommentsProvider({
       apiRoot: apiRoot,
@@ -23,7 +22,6 @@ global.GitHubComments = {
         <GithubCommentsCountView
           provider={provider}
           issueNumber={issueNumber}
-          commentsLink={commentsLink}
         />), commentsCountElement)
     }
 
@@ -40,13 +38,11 @@ global.GitHubComments = {
     for (let i = 0; i < elements.length; i++) {
       const e = elements[i]
       const issueNumberAttribute = e.attributes.getNamedItem('data-issue-number')
-      const commentsLinkAttribute = e.attributes.getNamedItem('data-comments-link')
-      if (issueNumberAttribute && commentsLinkAttribute) {
+      if (issueNumberAttribute) {
         ReactDOM.render((
           <GithubCommentsCountView
             provider={provider}
             issueNumber={issueNumberAttribute.value}
-            commentsLink={commentsLinkAttribute.value}
           />), e)
       }
     }
