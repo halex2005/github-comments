@@ -141,6 +141,7 @@ issue(number: ${number}) {
     }
     nodes {
       id
+      url
       bodyHTML
       createdAt
       author {
