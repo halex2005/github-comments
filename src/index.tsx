@@ -1,9 +1,12 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {GithubCommentsView} from './components/GithubCommentsView'
-import {GithubIssueCommentsProvider} from './api/GithubIssueCommentsProvider'
-import {GithubCommentsCountView} from './components/GithubCommentsCountView'
-import {GithubIndexPageIssueCommentsProvider} from './api/GithubIndexPageIssueCommentsProvider'
+import { GithubCommentsView } from './components/GithubCommentsView'
+import { GithubIssueCommentsProvider } from './api/GithubIssueCommentsProvider'
+import { GithubCommentsCountView } from './components/GithubCommentsCountView'
+import { GithubIndexPageIssueCommentsProvider } from './api/GithubIndexPageIssueCommentsProvider'
+import { GithubAuthenticationView } from './components/GithubAuthenticationView';
+import { GithubAuthenticationProvider } from './api/GithubAuthenticationProvider';
+import { GithubPostCommentView } from './components/GithubPostCommentView';
 
 global.GitHubComments = {
   renderPageComments(
@@ -48,5 +51,27 @@ global.GitHubComments = {
     }
 
     return provider.loadCommentsCount()
+  },
+
+  renderAuthenticationAndCommentPostingForm(
+    rootElement: HTMLElement,
+    postingElement: HTMLElement,
+    apiRoot: string,
+    clientId: string
+  ) {
+    const authenticationProvider = new GithubAuthenticationProvider({
+      apiRoot,
+      clientId
+    })
+    if (rootElement) {
+      ReactDOM.render(
+        <GithubAuthenticationView  provider={authenticationProvider} />,
+        rootElement)
+    }
+    if (postingElement) {
+      ReactDOM.render(
+        <GithubPostCommentView authProvider={authenticationProvider} />,
+        postingElement)
+    }
   }
 }

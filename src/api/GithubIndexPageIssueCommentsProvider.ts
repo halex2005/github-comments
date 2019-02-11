@@ -18,7 +18,7 @@ export class GithubIndexPageIssueCommentsProvider implements IIssueCommentsCount
     this.options = options
   }
 
-  getCommentsCountForIssue(issueNumber: string): IGithubCommentInfo {
+  public getCommentsCountForIssue(issueNumber: string): IGithubCommentInfo {
     if (!this.Issues.has(issueNumber)) {
       this.Issues.set(issueNumber, { totalCount: 0, issueUrl: '' })
     }
