@@ -89,6 +89,20 @@
   margin-top: 10px;
 }
 
+.post-comment-preview {
+  padding: 10px;
+}
+
+.post-comment-footer {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+}
+
+.post-comment-footer a {
+  margin-left: 20px;
+}
+
 .post-comment-container button {
   margin-top: 10px;
 }

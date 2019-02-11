@@ -14,7 +14,7 @@ const AuthenticatedUser = observer(({provider}: IProps) => {
         <img className="current-user-avatar" src={provider.currentUserAvatar} alt={`Logout for ${provider.currentUserName}`}/>
       </button>
       <div className="dropdown-menu" aria-labelledby="authenticated-user-menu">
-        <a className="dropdown-item" href={provider.getReviewAccessUrl()}>Review app authorization</a>
+        <a className="dropdown-item" href={provider.getReviewAccessUrl()} target="_blank">Review app authorization</a>
         <div className="dropdown-divider" />
         <a className="dropdown-item" onClick={() => provider.logout()}>Logout</a>
       </div>
