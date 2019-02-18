@@ -49,7 +49,7 @@ function tryParseBase64(value) {
   }
 }
 
-function fetchGithubGraphQL(headers, repositoryQuery, logger) {
+function fetchGithubGraphQL(accessToken, headers, repositoryQuery, logger) {
   const start = Date.now();
   const graphQlQuery = `
 query {
@@ -71,7 +71,7 @@ query {
     url: 'https://api.github.com/graphql',
     data: body,
     headers: Object.assign(
-      { 'Authorization': `bearer ${settings.authToken}` },
+      { 'Authorization': `bearer ${accessToken || settings.authToken}` },
       getUsableHeaders(headers))
   }
   return fetch(request)
@@ -79,8 +79,8 @@ query {
       const ms = Date.now() - start;
       if (response.data.errors) {
         logger.warn('GraphQL request has errors', {
-          url: request.url,
           method: request.method,
+          url: request.url,
           status: response.status,
           statusText: response.statusText,
           errors: response.data.errors,
@@ -90,8 +90,8 @@ query {
         })
       } else {
         logger.info('GraphQL request completed', {
-          url: request.url,
           method: request.method,
+          url: request.url,
           status: response.status,
           statusText: response.statusText,
           errors: response.data.errors,
@@ -118,7 +118,44 @@ query {
 }
 
 const github = {
-  getPageComments({ query, headers, number }, logger) {
+  getCurrentAuthenticatedUserInfo(accessToken, logger) {
+    const start = Date.now();
+    const request = {
+      method: 'GET',
+      url: `https://api.github.com/user?access_token=${accessToken}`,
+    }
+    return fetch(request)
+      .then(response => {
+        const ms = Date.now() - start;
+        logger.info('User info request completed', {
+          method: request.method,
+          url: request.url,
+          status: response.status,
+          statusText: response.statusText,
+          errors: response.data.errors,
+          duration: ms,
+          limits: response.data.data && response.data.data.rateLimit,
+        })
+        return {
+          name: response.data.name,
+          avatarUrl: response.data.avatar_url,
+          profileUrl: response.data.html_url
+        }
+      }, err => {
+        const ms = Date.now() - start;
+        logger.warn('User info request has errors', {
+          method: request.method,
+          url: request.url,
+          status: err.response.status,
+          statusText: err.response.statusText,
+          errors: [err.response.data],
+          duration: ms,
+        })
+        return err
+      })
+  },
+
+  getPageComments({ query, headers, number, accessToken }, logger) {
     if (!(Math.floor(Number(number)) > 0)) {
       throw new Error("'number' is required integer query string parameter")
     }
@@ -152,10 +189,60 @@ issue(number: ${number}) {
     }
   }
 }`
-    return fetchGithubGraphQL(headers, pageCommentsQuery, logger)
+    return fetchGithubGraphQL(accessToken, headers, pageCommentsQuery, logger)
   },
 
-  getListPageCommentsCountStats({ headers, body }, logger) {
+  postPageComment({ accessToken, body, number }, logger) {
+    const start = Date.now();
+    if (!(Math.floor(Number(number)) > 0)) {
+      throw new Error("'number' is required integer query string parameter")
+    }
+
+    const request = {
+      method: 'POST',
+      url: `https://api.github.com/repos/${settings.owner}/${settings.repository}/issues/${number}/comments`,
+      headers: {
+        'Authorization': `token ${accessToken}`
+      },
+      data: body
+    }
+    return fetch(request)
+      .then(response => {
+        const ms = Date.now() - start;
+        logger.info('POST comment completed', {
+          method: request.method,
+          url: request.url,
+          status: response.status,
+          statusText: response.statusText,
+          duration: ms,
+        })
+        return {
+          id: response.data.node_id,
+          url: response.data.html_url,
+          createdAt: response.data.created_at,
+          body: response.data.body_html,
+          userLogin: response.data.user.login,
+          userUrl: response.data.user.html_url,
+          userAvatar: response.data.user.avatar_url,
+        }
+      }, err => {
+        const ms = Date.now() - start;
+        logger.warn('POST comment has errors', {
+          method: request.method,
+          url: request.url,
+          status: err.response.status,
+          statusText: err.response.statusText,
+          errors: [err.response.data],
+          duration: ms,
+        })
+        return Promise.reject({
+          status: err.response.status,
+          errors: err.response.data,
+        })
+      })
+  },
+
+  getListPageCommentsCountStats({ headers, body, accessToken }, logger) {
     const issueNumberCommentQueries = body
       .issues
       .map(i => `
@@ -167,7 +254,7 @@ issue${i}: issue(number: ${i}) {
 }`)
     const pageCommentsQuery = issueNumberCommentQueries.join('')
 
-    return fetchGithubGraphQL(headers, pageCommentsQuery, logger)
+    return fetchGithubGraphQL(accessToken, headers, pageCommentsQuery, logger)
       .then(response => {
         if (response.responseData
           && response.responseData.data
