@@ -102,6 +102,7 @@ export class GithubIssueCommentsProvider implements IIssueCommentsCountProvider 
     this.FetchInProgress = false
     this.HasError = false
     this.ErrorMessage = ''
+    this.CanShowMoreComments = true
 
     console.log(response.data)
     return response.data

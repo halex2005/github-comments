@@ -49,10 +49,10 @@ export class GithubCommentsGlobal {
     }
   }
 
-  public renderIndexPageCommentsCount(elementsDataName: string, apiRoot: string) {
+  public renderIndexPageCommentsCount(elementsDataName: string) {
     const elements = document.getElementsByName(elementsDataName)
 
-    const provider = new GithubIndexPageIssueCommentsProvider({apiRoot: apiRoot})
+    const provider = new GithubIndexPageIssueCommentsProvider({apiRoot: this.apiRoot})
 
     for (let i = 0; i < elements.length; i++) {
       const e = elements[i]

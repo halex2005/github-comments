@@ -18,6 +18,10 @@
   margin-top: 10px;
 }
 
+.post-comment-edit ul {
+  margin-left: 0;
+}
+
 .post-comment-field {
   width: 100%;
   height: 100%;

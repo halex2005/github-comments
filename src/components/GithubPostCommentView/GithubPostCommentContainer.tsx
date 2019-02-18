@@ -23,7 +23,10 @@ export const GithubPostCommentContainer = ({ authProvider, doPostCommentMarkdown
             className="btn btn-success"
             onClick={() => Promise
               .resolve(doPostCommentMarkdown && doPostCommentMarkdown(postCommentLocalState.Markdown))
-              .then(() => postCommentLocalState.setMarkdown(''))
+              .then(() => {
+                postCommentLocalState.setMarkdown('')
+                postCommentLocalState.setPreviewIsActive(false)
+              })
             }
           >Post comment</button>
           <a href="https://guides.github.com/features/mastering-markdown/" target="_blank">

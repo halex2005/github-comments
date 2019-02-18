@@ -66,7 +66,7 @@ function getPreviewContent(provider: GithubMarkdownPreviewProvider) {
     return <div className="bg-warning">Nothing to preview</div>
   }
   if (provider.PreviewInProgress) {
-    return <i className="fa-spin fa-spinner fa-fw fa-2x" />
+    return <i className="fa fa-spin fa-spinner fa-fw fa-2x" />
   }
   return <div dangerouslySetInnerHTML={{ __html: provider.Html}} />
 }

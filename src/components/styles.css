@@ -64,8 +64,8 @@
 }
 
 .current-user-avatar {
-  width: 2.5em;
-  height: 2.5em;
+  width: 2em;
+  height: 2em;
   border-radius: 5px;
   border-style: none;
   display: inline-block;
@@ -81,4 +81,10 @@
 
 .view-on-github {
   color: black;
+}
+
+.auth-info {
+  display: flex;
+  align-items: center;
+  font-size: 1.25em;
 }
