@@ -85,4 +85,34 @@ export class GithubIssueCommentsProvider implements IIssueCommentsCountProvider 
 
     return Promise.reject(error)
   }
+
+  @action.bound
+  public postComment(markdown: string) {
+    if (this.FetchInProgress) {
+      return Promise.reject('fetch in progress')
+    }
+    this.FetchInProgress = true
+    return axios
+      .post(`${this.options.apiRoot || '/api'}/page-comments/${this.options.issueNumber}?access_token=${window.localStorage.getItem('github-comments-access-token')}`, { body: markdown })
+      .then(this.onPostCommentSuccess, this.onPostCommentError)
+  }
+
+  @action.bound
+  private onPostCommentSuccess(response: any) {
+    this.FetchInProgress = false
+    this.HasError = false
+    this.ErrorMessage = ''
+
+    console.log(response.data)
+    return response.data
+  }
+
+  @action.bound
+  private onPostCommentError(error: any) {
+    this.FetchInProgress = false
+    this.HasError = true
+    this.ErrorMessage = error && error.response && error.response.data && error.response.data.errors
+
+    return Promise.reject(error)
+  }
 }

@@ -8,17 +8,32 @@ interface IProps {
 }
 
 const AuthenticatedUser = observer(({provider}: IProps) => {
+  const userInfo = provider.currentUserInfo
   return (
     <div className="dropdown">
-      <button className="btn btn-secondary dropdown-toggle" type="button" id="authenticated-user-menu" data-toggle="dropdown">
-        <img className="current-user-avatar" src={provider.currentUserAvatar} alt={`Logout for ${provider.currentUserName}`}/>
+      <button className="btn btn-primary navbar-btn dropdown-toggle" type="button" id="authenticated-user-menu" data-toggle="dropdown">
+        <img className="current-user-avatar" src={userInfo.userAvatar} alt={`Logout for ${userInfo.userLogin}`}/>
+        {' '}
+        <span>{userInfo.userLogin}</span>
       </button>
-      <div className="dropdown-menu" aria-labelledby="authenticated-user-menu">
-        <a className="dropdown-item" href={provider.getReviewAccessUrl()} target="_blank">Review app authorization</a>
-        <div className="dropdown-divider" />
-        <a className="dropdown-item" onClick={() => provider.logout()}>Logout</a>
-      </div>
+      <ul className="dropdown-menu" aria-labelledby="authenticated-user-menu">
+        <li><a href={userInfo.userUrl} target="_blank">View profile on GitHub</a></li>
+        <li><a href={provider.getReviewAccessUrl()} target="_blank">Review app authorization</a></li>
+        <li role="separator" className="divider" />
+        <li><a onClick={() => provider.logout()}>Logout</a></li>
+      </ul>
     </div>
+  )
+})
+
+const UnauthenticatedUser = observer(({ provider }: IProps) => {
+  return (
+    <a className="btn btn-primary navbar-btn" type="button" href={provider.getAuthenticationUrl()}>
+      <div style={{display: 'flex', alignItems: 'center', fontSize: '1.25em'}}>
+        <i className="fa fa-github fa-2x fa-inverse" />
+        <span style={{marginLeft: 10}}>Sign in with GitHub</span>
+      </div>
+    </a>
   )
 })
 
@@ -28,5 +43,5 @@ export const GithubAuthenticationView = observer(function ({ provider }: IProps)
   }
   return provider.isAuthenticated
     ? <AuthenticatedUser provider={provider} />
-    : <a href={provider.getAuthenticationUrl()}>Sign in with GitHub</a>
+    : <UnauthenticatedUser provider={provider} />
 })

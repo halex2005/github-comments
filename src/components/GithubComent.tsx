@@ -6,7 +6,7 @@ import {RelativeTime} from "./RelativeTime";
 export function GithubComment({ comment }: { comment: IGithubComment }) {
   return (
     <li className="comment-block" key={comment.id}>
-      <AvatarView comment={comment} />
+      <AvatarView userInfo={comment} />
       <div id={'issue-comment-' + comment.id} className="comment-container">
         <h3 className="header">
           <strong>

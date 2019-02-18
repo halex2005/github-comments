@@ -1,11 +1,11 @@
 import * as React from 'react'
-import {IGithubComment} from "./interfaces";
+import {IGithubUserInfo} from "./interfaces";
 
-export function AvatarView({ comment }: { comment: IGithubComment }) {
+export function AvatarView({ userInfo }: { userInfo: IGithubUserInfo }) {
   return (
     <div className="avatar-container">
-      <a href={comment.userUrl} rel="nofollow">
-        <img src={comment.userAvatar} alt={comment.userLogin} className="avatar"/>
+      <a href={userInfo.userUrl} rel="nofollow">
+        <img src={userInfo.userAvatar} alt={userInfo.userLogin} className="avatar"/>
       </a>
     </div>
   )

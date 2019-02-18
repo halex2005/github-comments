@@ -1,9 +1,9 @@
 // @ts-ignore
 import * as React from 'react'
 import { observer } from 'mobx-react'
-import {GithubComment} from "./GithubComent"
-import './styles.css'
+import { GithubComment } from "./GithubComent"
 import { GithubIssueCommentsProvider } from '../api/GithubIssueCommentsProvider';
+import './styles.css'
 
 interface IProps {
   provider: GithubIssueCommentsProvider

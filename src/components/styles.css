@@ -64,8 +64,8 @@
 }
 
 .current-user-avatar {
-  width: 50px;
-  height: 50px;
+  width: 2.5em;
+  height: 2.5em;
   border-radius: 5px;
   border-style: none;
   display: inline-block;
@@ -81,28 +81,4 @@
 
 .view-on-github {
   color: black;
-}
-
-.post-comment-container {
-  display: flex;
-  flex-direction: column;
-  margin-top: 10px;
-}
-
-.post-comment-preview {
-  padding: 10px;
-}
-
-.post-comment-footer {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-}
-
-.post-comment-footer a {
-  margin-left: 20px;
-}
-
-.post-comment-container button {
-  margin-top: 10px;
 }
