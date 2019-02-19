@@ -14,5 +14,9 @@
     "subdomain": "PUT-YOUR-LOGGLY-SUBDOMAIN-HERE",
     "tags": ["Winston-NodeJS"],
     "json": true
+  },
+  "sentry": {
+    "enabled": false,
+    "dsn": "PUT-YOUR-SENTRY-DSN-HERE"
   }
 }

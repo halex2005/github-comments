@@ -9,6 +9,7 @@
   "author": "Aleksei Kharlov aka halex2005",
   "license": "MIT",
   "dependencies": {
+    "@sentry/node": "^4.6.2",
     "axios": "^0.18.0",
     "express": "^4.16.3",
     "express-http-context": "^1.2.0",

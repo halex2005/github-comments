@@ -9,6 +9,13 @@ const settings = require('./settings')
 const logger = require('./logger')
 const app = express()
 
+let Sentry = null
+if (settings.sentry && settings.sentry.enabled) {
+  Sentry = require('@sentry/node');
+  Sentry.init({ dsn: settings.sentry.dsn });
+  app.use(Sentry.Handlers.requestHandler());
+}
+
 const accessTokenCookieName = 'github-comments-access-token'
 
 app.use(httpContext.middleware);
@@ -106,7 +113,8 @@ app.post('/index-page-comments-count', (req, res) => github
   .then(({ responseData, responseHeaders, responseStatus }) => {
     res.set(responseHeaders)
     res.status(responseStatus).send(responseData)
-  }))
+  })
+)
 
 app.get('/oauth/logout', (req, res) => {
   const accessToken = (req.cookies && req.cookies[accessTokenCookieName])
@@ -138,6 +146,10 @@ app.get('/oauth/access-token', (req, res) => {
     )
     .catch(err => res.status(400).send(err))
 })
+
+if (Sentry) {
+  app.use(Sentry.Handlers.errorHandler());
+}
 
 if (settings['use-http-port-80']) {
   app.listen(80, () => logger.info(`Application started`, { port: 80 }));
