@@ -1,3 +1,4 @@
+const insightOpsLogger = require('r7insight_node');
 const winston = require('winston')
 const winstonLoggly = require('winston-loggly-bulk')
 const httpContext = require('express-http-context');
@@ -27,6 +28,13 @@ if (settings.loggly && settings.loggly.useLoggly) {
   logger.add(new winston.transports.Loggly(settings.loggly))
 }
 
+if (settings.insightOps && settings.insightOps.enabled) {
+  logger.add(new winston.transports.Logentries({
+    token: settings.insightOps.token,
+    region: settings.insightOps.region
+  }))
+}
+
 function log(level, message, additionalInfo) {
   logger.log(level, message, Object.assign({ requestId: httpContext.get(requestIdHeaderName) }, additionalInfo))
 }
@@ -43,9 +51,6 @@ module.exports = {
   },
   error(message, additionalInfo) {
     log('error', message, additionalInfo)
-  },
-  fatal(message, additionalInfo) {
-    log('fatal', message, additionalInfo)
   },
   log,
   requestIdHeaderName,
