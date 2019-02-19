@@ -4,6 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "PORT=4000 node dist/app.js",
+    "watch": "PORT=4000 nodemon dist/app.js",
+    "build-ts": "tsc",
+    "watch-ts": "tsc -w",
     "test": "jest"
   },
   "author": "Aleksei Kharlov aka halex2005",
@@ -19,7 +23,13 @@
     "winston-loggly-bulk": "git+https://github.com/loggly/winston-loggly-bulk.git#3.x"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/cls-hooked": "^4.2.1",
+    "@types/express": "^4.16.1",
+    "@types/node": "^11.9.4",
+    "@types/uuid": "^3.4.4",
     "jest": "^24.1.0",
+    "nodemon": "^1.18.10",
     "typescript": "^3.3.3"
   }
 }

@@ -25,20 +25,20 @@ const EnabledResponseHeaders = [
   'x-xss-protection',
 ];
 
-function getUsableHeaders(headers) {
+export function getUsableHeaders(headers) {
   return Object.keys(headers)
     .filter(h => !DisabledRequestHeaders.includes(h))
     .reduce((acc, h) => (Object.assign({ [h]: headers[h] }, acc)), {})
 }
 
-function getResponseHeaders(headers) {
+export function getResponseHeaders(headers) {
   return Object.keys(headers)
     .filter(h => EnabledResponseHeaders.includes(h.toLowerCase()))
     .reduce((acc, h) => (Object.assign({ [h]: headers[h] }, acc)), {})
 }
 
 const base64regex = /^\s*([\s0-9a-zA-Z+/]{4})*(([\s0-9a-zA-Z+/]{2}==)|([\s0-9a-zA-Z+/]{3}=))?\s*$/
-function tryParseBase64(value) {
+export function tryParseBase64(value) {
   if (!value) return false
   try {
     Buffer.from(value, 'base64')
@@ -49,18 +49,11 @@ function tryParseBase64(value) {
   }
 }
 
-function getRateLimitsFromHeaders(headers) {
+export function getRateLimitsFromHeaders(headers) {
   return {
     limit: headers['x-ratelimit-limit'] && Number(headers['x-ratelimit-limit']),
     cost: headers['x-ratelimit-cost'] && Number(headers['x-ratelimit-cost']) || 1,
     remaining: headers['x-ratelimit-remaining'] && Number(headers['x-ratelimit-remaining']),
     resetAt: headers['x-ratelimit-reset'] && new Date(Number(headers['x-ratelimit-reset'])*1000).toISOString(),
   }
-}
-
-module.exports = {
-  getRateLimitsFromHeaders,
-  getUsableHeaders,
-  getResponseHeaders,
-  tryParseBase64,
 }

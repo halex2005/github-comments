@@ -1,5 +1,5 @@
 const axios = require('axios')
-const settings = require('./settings')
+import * as settings from './settings.json'
 const {
   getRateLimitsFromHeaders,
   getUsableHeaders,

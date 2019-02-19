@@ -2,7 +2,8 @@ const insightOpsLogger = require('r7insight_node');
 const winston = require('winston')
 const winstonLoggly = require('winston-loggly-bulk')
 const httpContext = require('express-http-context');
-const requestIdHeaderName = "X-Request-Id"
+
+export const requestIdHeaderName = "X-Request-Id"
 
 const settings = require('./settings')
 
@@ -35,23 +36,23 @@ if (settings.insightOps && settings.insightOps.enabled) {
   }))
 }
 
-function log(level, message, additionalInfo) {
-  logger.log(level, message, Object.assign({ requestId: httpContext.get(requestIdHeaderName) }, additionalInfo))
+export function log(level: string, message: string, additionalInfo: any) {
+  logger.log(level, message,
+    Object.assign({
+      timestamp: new Date().toISOString(),
+      requestId: httpContext.get(requestIdHeaderName)
+    }, additionalInfo))
 }
 
-module.exports = {
-  debug(message, additionalInfo) {
-    log('debug', message, additionalInfo)
-  },
-  info(message, additionalInfo) {
-    log('info', message, additionalInfo)
-  },
-  warn(message, additionalInfo) {
-    log('warn', message, additionalInfo)
-  },
-  error(message, additionalInfo) {
-    log('error', message, additionalInfo)
-  },
-  log,
-  requestIdHeaderName,
+export function debug(message: string, additionalInfo: any) {
+  log('debug', message, additionalInfo)
+}
+export function info(message: string, additionalInfo: any) {
+  log('info', message, additionalInfo)
+}
+export function warn(message: string, additionalInfo: any) {
+  log('warn', message, additionalInfo)
+}
+export function error(message: string, additionalInfo: any) {
+  log('error', message, additionalInfo)
 }

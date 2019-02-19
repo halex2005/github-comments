@@ -1,12 +1,12 @@
-const express = require('express')
-const httpContext = require('express-http-context');
-const process = require('process')
-const uuid = require('uuid');
-const winstonLoggly = require('winston-loggly-bulk')
+import express from 'express'
+import httpContext from 'express-http-context'
+import process from 'process'
+import uuid from 'uuid'
+import winstonLoggly from 'winston-loggly-bulk'
 
 const github = require('./github-api')
 const settings = require('./settings')
-const logger = require('./logger')
+import * as logger from './logger'
 const app = express()
 
 let Sentry = null
@@ -39,7 +39,7 @@ app.use((req, res, next) => {
       method: req.method,
       url: req.originalUrl,
       status: res.statusCode,
-      statusText: res.statusMessage || res.statusText,
+      statusText: res.statusMessage,
       duration: ms,
       hostname: req.get('host'),
       remote: req.ip,
