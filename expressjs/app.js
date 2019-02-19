@@ -1,36 +1,25 @@
-const axios = require('axios')
 const express = require('express')
+const httpContext = require('express-http-context');
 const process = require('process')
-const winston = require('winston')
+const uuid = require('uuid');
 const winstonLoggly = require('winston-loggly-bulk')
-const github = require('./github-api')
 
+const github = require('./github-api')
 const settings = require('./settings')
+const logger = require('./logger')
 const app = express()
 
-const logger = winston.createLogger({
-  level: 'info',
-  handleExceptions: true,
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
-  ),
-  transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({
-      filename: 'combined.log',
-      maxsize: 1000000,
-      masFiles: 5,
-      tailable: true,
-    })
-  ]
-})
-
-if (settings.loggly && settings.loggly.useLoggly) {
-  logger.add(new winston.transports.Loggly(settings.loggly))
-}
-
 const accessTokenCookieName = 'github-comments-access-token'
+
+app.use(httpContext.middleware);
+app.use(function(req, res, next) {
+  const requestId = !!req.get(logger.requestIdHeaderName)
+    ? req.get(logger.requestIdHeaderName)
+    : uuid.v4()
+  httpContext.set(logger.requestIdHeaderName, requestId)
+  res.set(logger.requestIdHeaderName, requestId)
+  next();
+});
 
 // x-response-time
 
@@ -39,6 +28,7 @@ app.use((req, res, next) => {
   res.on('finish', function() {
     const ms = Date.now() - start;
     logger.info(`Request completed`, {
+      requestId: res.get(logger.requestIdHeaderName),
       method: req.method,
       url: req.originalUrl,
       status: res.statusCode,
@@ -81,12 +71,13 @@ app.use((req, res, next) => {
 
 // supported query parameters:
 // - after
-app.get('/page-comments/:number', (req, res) => github.getPageComments({
-  headers: req.headers,
-  query: req.query,
-  number: req.params.number,
-  accessToken: req.cookies && req.cookies[accessTokenCookieName]
-}, logger)
+app.get('/page-comments/:number', (req, res) => github
+  .getPageComments({
+    headers: req.headers,
+    query: req.query,
+    number: req.params.number,
+    accessToken: req.cookies && req.cookies[accessTokenCookieName]
+  })
   .then(({ responseData, responseHeaders, responseStatus }) => {
     res.set(responseHeaders)
     res.status(responseStatus).send(responseData)
@@ -100,17 +91,18 @@ app.post('/page-comments/:number', (req, res) => {
     res.sendStatus(400)
     return
   }
-  return github.postPageComment({ accessToken, body, number: req.params.number }, logger)
+  return github.postPageComment({ accessToken, body, number: req.params.number })
     .then(
       data => res.status(201).send(data),
       err => res.status(err.status).send(err.errors))
 })
 
-app.post('/index-page-comments-count', (req, res) => github.getListPageCommentsCountStats({
-  headers: req.headers,
-  body: req.body,
-  accessToken: req.cookies && req.cookies[accessTokenCookieName]
-}, logger)
+app.post('/index-page-comments-count', (req, res) => github
+  .getListPageCommentsCountStats({
+    headers: req.headers,
+    body: req.body,
+    accessToken: req.cookies && req.cookies[accessTokenCookieName]
+  })
   .then(({ responseData, responseHeaders, responseStatus }) => {
     res.set(responseHeaders)
     res.status(responseStatus).send(responseData)
@@ -136,9 +128,9 @@ app.get('/oauth/access-token', (req, res) => {
     return
   }
   return github
-    .getOAuthAccessToken(req.query.code, logger)
+    .getOAuthAccessToken(req.query.code)
     .then(oauthResponseData => github
-      .getCurrentAuthenticatedUserInfo(oauthResponseData.access_token, logger)
+      .getCurrentAuthenticatedUserInfo(oauthResponseData.access_token)
       .then(userResponse => {
         res.cookie(accessTokenCookieName, oauthResponseData.access_token)
         res.status(200).send(Object.assign(userResponse, oauthResponseData))
