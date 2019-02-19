@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "Aleksei Kharlov aka halex2005",
   "license": "MIT",
@@ -13,5 +13,9 @@
     "express": "^4.16.3",
     "winston": "^3.1.0",
     "winston-loggly-bulk": "git+https://github.com/loggly/winston-loggly-bulk.git#3.x"
+  },
+  "devDependencies": {
+    "jest": "^24.1.0",
+    "typescript": "^3.3.3"
   }
 }

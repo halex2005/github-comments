@@ -1,53 +1,11 @@
-const fetch = require('axios')
+const axios = require('axios')
 const settings = require('./settings')
-
-const DisabledRequestHeaders = [
-  'accept',
-  'accept-encoding',
-  'connection',
-  'cookie',
-  'host',
-  'upgrade-insecure-requests',
-]
-
-const EnabledResponseHeaders = [
-  'cache-control',
-  'content-security-policy',
-  'date',
-  'server',
-  'strict-transport-security',
-  'etag',
-  'link',
-  'retry-after',
-  'x-poll-interval',
-  'x-gitHub-media-type',
-  'x-gitHub-request-id',
-  'x-frame-options',
-  'x-xss-protection',
-];
-
-function getUsableHeaders(headers) {
-  return Object.keys(headers)
-    .filter(h => !DisabledRequestHeaders.includes(h))
-    .reduce((acc, h) => (Object.assign({ [h]: headers[h] }, acc)), {})
-}
-
-function getResponseHeaders(headers) {
-  return Object.keys(headers)
-    .filter(h => EnabledResponseHeaders.includes(h))
-    .reduce((acc, h) => (Object.assign({ [h]: headers[h] }, acc)), {})
-}
-
-function tryParseBase64(value) {
-  if (!value) return false
-  try {
-    new Buffer(value, 'base64')
-    return true
-  }
-  catch (e) {
-    return false
-  }
-}
+const {
+  getRateLimitsFromHeaders,
+  getUsableHeaders,
+  getResponseHeaders,
+  tryParseBase64,
+} = require('./github-api-helpers')
 
 function fetchGithubGraphQL(accessToken, headers, repositoryQuery, logger) {
   const start = Date.now();
@@ -74,7 +32,7 @@ query {
       { 'Authorization': `bearer ${accessToken || settings.authToken}` },
       getUsableHeaders(headers))
   }
-  return fetch(request)
+  return axios(request)
     .then(response => {
       const ms = Date.now() - start;
       if (response.data.errors) {
@@ -118,23 +76,62 @@ query {
 }
 
 const github = {
+  getOAuthAccessToken(code, logger) {
+    const start = Date.now();
+    const url = `https://github.com/login/oauth/access_token?client_id=${settings.clientId}&client_secret=${settings.clientSecret}&code=${code}`
+    return axios
+      .post(url, {}, { headers: { 'Accept': 'application/json' } })
+      .then(response => {
+        const ms = Date.now() - start;
+        if (response.data.error) {
+          logger.warn('OAuth: access token request error', {
+            method: 'POST',
+            url: url,
+            status: response.status,
+            statusText: response.statusText,
+            errors: [response.data.error],
+            duration: ms,
+          })
+          return Promise.reject(response.data)
+        }
+
+        logger.info('OAuth: access token request completed', {
+          method: 'POST',
+          url: url,
+          status: response.status,
+          statusText: response.statusText,
+          duration: ms,
+        })
+        return Promise.resolve(response.data)
+      }, err => {
+        const ms = Date.now() - start;
+        logger.warn('OAuth: access token request failed', {
+          method: 'POST',
+          url: url,
+          status: err.response.status,
+          statusText: err.response.statusText,
+          errors: [err.response.data],
+          duration: ms,
+        })
+        return Promise.reject(err.response.data)
+      })
+  },
+
   getCurrentAuthenticatedUserInfo(accessToken, logger) {
     const start = Date.now();
-    const request = {
-      method: 'GET',
-      url: `https://api.github.com/user?access_token=${accessToken}`,
-    }
-    return fetch(request)
+    const url = `https://api.github.com/user`
+    return axios
+      .get(url, { headers: { 'Authorization': `bearer ${accessToken}` } })
       .then(response => {
         const ms = Date.now() - start;
         logger.info('User info request completed', {
-          method: request.method,
-          url: request.url,
+          method: 'GET',
+          url: url,
           status: response.status,
           statusText: response.statusText,
-          errors: response.data.errors,
+          profile: response.data.html_url,
           duration: ms,
-          limits: response.data.data && response.data.data.rateLimit,
+          limits: getRateLimitsFromHeaders(response.headers),
         })
         return {
           name: response.data.name,
@@ -144,12 +141,13 @@ const github = {
       }, err => {
         const ms = Date.now() - start;
         logger.warn('User info request has errors', {
-          method: request.method,
-          url: request.url,
+          method: 'GET',
+          url: url,
           status: err.response.status,
           statusText: err.response.statusText,
           errors: [err.response.data],
           duration: ms,
+          limits: getRateLimitsFromHeaders(err.response.headers),
         })
         return err
       })
@@ -206,7 +204,7 @@ issue(number: ${number}) {
       },
       data: body
     }
-    return fetch(request)
+    return axios(request)
       .then(response => {
         const ms = Date.now() - start;
         logger.info('POST comment completed', {

@@ -131,60 +131,20 @@ app.get('/oauth/logout', (req, res) => {
 })
 
 app.get('/oauth/access-token', (req, res) => {
-  const start = Date.now();
-  const request = {
-    method: 'POST',
-    url: `https://github.com/login/oauth/access_token?client_id=${settings.clientId}&client_secret=${settings.clientSecret}&code=${req.query.code}`,
-    headers: {
-      'Accept': 'application/json'
-    }
+  if (!req.query.code) {
+    res.status(404).send({ error: 'code query parameter is required' })
+    return
   }
-  return axios(request)
-    .then(response => {
-      const ms = Date.now() - start;
-      if (response.data.error) {
-        logger.warn('OAuth: access token request error', {
-          method: request.method,
-          url: request.url,
-          status: response.status,
-          statusText: response.statusText,
-          errors: [response.data],
-          duration: ms,
-        })
-        res.status(400).send(response.data)
-      } else {
-        logger.info('OAuth: access token request completed', {
-          method: request.method,
-          url: request.url,
-          status: response.status,
-          statusText: response.statusText,
-          token: response.data.access_token,
-          duration: ms,
-        })
-        if (response.data.access_token) {
-          res.cookie(accessTokenCookieName, response.data.access_token)
-        }
-
-        const accessTokenResponseData = response.data
-        return github.getCurrentAuthenticatedUserInfo(response.data.access_token, logger)
-          .then(userResponse => {
-            res.status(200).send(Object.assign(userResponse, accessTokenResponseData))
-          }, err => {
-            res.status(400).send(err)
-          })
-      }
-    }, err => {
-      const ms = Date.now() - start;
-      logger.warn('OAuth: access token request failed', {
-        method: request.method,
-        url: request.url,
-        status: err.response.status,
-        statusText: err.response.statusText,
-        errors: [err.response.data],
-        duration: ms,
+  return github
+    .getOAuthAccessToken(req.query.code, logger)
+    .then(oauthResponseData => github
+      .getCurrentAuthenticatedUserInfo(oauthResponseData.access_token, logger)
+      .then(userResponse => {
+        res.cookie(accessTokenCookieName, oauthResponseData.access_token)
+        res.status(200).send(Object.assign(userResponse, oauthResponseData))
       })
-      res.sendStatus(400)
-    })
+    )
+    .catch(err => res.status(400).send(err))
 })
 
 if (settings['use-http-port-80']) {
