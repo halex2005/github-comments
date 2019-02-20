@@ -23,22 +23,22 @@ const EnabledResponseHeaders = [
   'x-github-request-id',
   'x-frame-options',
   'x-xss-protection',
-];
+]
 
-export function getUsableHeaders(headers) {
+export function getUsableHeaders(headers): any {
   return Object.keys(headers)
     .filter(h => !DisabledRequestHeaders.includes(h))
     .reduce((acc, h) => (Object.assign({ [h]: headers[h] }, acc)), {})
 }
 
-export function getResponseHeaders(headers) {
+export function getResponseHeaders(headers): any {
   return Object.keys(headers)
     .filter(h => EnabledResponseHeaders.includes(h.toLowerCase()))
     .reduce((acc, h) => (Object.assign({ [h]: headers[h] }, acc)), {})
 }
 
 const base64regex = /^\s*([\s0-9a-zA-Z+/]{4})*(([\s0-9a-zA-Z+/]{2}==)|([\s0-9a-zA-Z+/]{3}=))?\s*$/
-export function tryParseBase64(value) {
+export function tryParseBase64(value): boolean {
   if (!value) return false
   try {
     Buffer.from(value, 'base64')
@@ -49,7 +49,7 @@ export function tryParseBase64(value) {
   }
 }
 
-export function getRateLimitsFromHeaders(headers) {
+export function getRateLimitsFromHeaders(headers): any {
   return {
     limit: headers['x-ratelimit-limit'] && Number(headers['x-ratelimit-limit']),
     cost: headers['x-ratelimit-cost'] && Number(headers['x-ratelimit-cost']) || 1,

@@ -1,15 +1,16 @@
-const axios = require('axios')
-import * as settings from './settings.json'
-const {
+import axios from 'axios'
+import settings from './settings.json'
+import {
   getRateLimitsFromHeaders,
   getUsableHeaders,
   getResponseHeaders,
   tryParseBase64,
-} = require('./github-api-helpers')
-const logger = require('./logger')
+} from './github-api-helpers'
+import logger from './logger'
+import {IFetchGraphQLResult, IGithubCommentInfo, IGithubUserInfo, IOAuthTokenResult} from './github-api-types'
 
-function fetchGithubGraphQL(accessToken, headers, repositoryQuery) {
-  const start = Date.now();
+function fetchGithubGraphQL(accessToken, headers, repositoryQuery): Promise<IFetchGraphQLResult> {
+  const start = Date.now()
   const graphQlQuery = `
 query {
   repository(owner: "${settings.owner}", name: "${settings.repository}") {
@@ -32,7 +33,7 @@ query {
   return axios
     .post(url, body, { headers: requestHeaders })
     .then(response => {
-      const ms = Date.now() - start;
+      const ms = Date.now() - start
       if (response.data.errors) {
         logger.warn('GraphQL request has errors', {
           method: 'POST',
@@ -58,13 +59,13 @@ query {
       }
 
       return response.data.data
-        ? ({
+        ? Promise.resolve({
           responseData: response.data,
           responseHeaders: getResponseHeaders(response),
           responseStatus: response.status,
           responseStatusText: response.statusText,
         })
-        : ({
+        : Promise.reject({
           responseData: response.data,
           responseHeaders: getResponseHeaders(response),
           responseStatus: 400,
@@ -74,25 +75,13 @@ query {
 }
 
 const github = {
-  getOAuthAccessToken(code) {
-    const start = Date.now();
+  getOAuthAccessToken(code): Promise<IOAuthTokenResult> {
+    const start = Date.now()
     const url = `https://github.com/login/oauth/access_token?client_id=${settings.clientId}&client_secret=${settings.clientSecret}&code=${code}`
     return axios
       .post(url, {}, { headers: { 'Accept': 'application/json' } })
       .then(response => {
-        const ms = Date.now() - start;
-        if (response.data.error) {
-          logger.warn('OAuth: access token request error', {
-            method: 'POST',
-            url: url,
-            status: response.status,
-            statusText: response.statusText,
-            errors: [response.data.error],
-            duration: ms,
-          })
-          return Promise.reject(response.data)
-        }
-
+        const ms = Date.now() - start
         logger.info('OAuth: access token request completed', {
           method: 'POST',
           url: url,
@@ -102,7 +91,7 @@ const github = {
         })
         return Promise.resolve(response.data)
       }, err => {
-        const ms = Date.now() - start;
+        const ms = Date.now() - start
         logger.warn('OAuth: access token request failed', {
           method: 'POST',
           url: url,
@@ -115,13 +104,13 @@ const github = {
       })
   },
 
-  getCurrentAuthenticatedUserInfo(accessToken) {
-    const start = Date.now();
-    const url = `https://api.github.com/user`
+  getCurrentAuthenticatedUserInfo(accessToken): Promise<IGithubUserInfo> {
+    const start = Date.now()
+    const url = 'https://api.github.com/user'
     return axios
       .get(url, { headers: { 'Authorization': `bearer ${accessToken}` } })
       .then(response => {
-        const ms = Date.now() - start;
+        const ms = Date.now() - start
         logger.info('User info request completed', {
           method: 'GET',
           url: url,
@@ -137,7 +126,7 @@ const github = {
           profileUrl: response.data.html_url
         }
       }, err => {
-        const ms = Date.now() - start;
+        const ms = Date.now() - start
         logger.warn('User info request has errors', {
           method: 'GET',
           url: url,
@@ -151,19 +140,21 @@ const github = {
       })
   },
 
-  getPageComments({ query, headers, number, accessToken }) {
+  getPageComments({ query, headers, number, accessToken }): Promise<IFetchGraphQLResult> {
     if (!(Math.floor(Number(number)) > 0)) {
-      throw new Error("'number' is required integer query string parameter")
+      throw new Error('"number" is required integer query string parameter')
     }
 
     const afterKey = query.after
     const afterKeyFilter = afterKey ? `, after: "${afterKey}"` : ''
     if (afterKey && !tryParseBase64(afterKey)) {
-      throw new Error("'after' query string parameter must be base64-encoded string")
+      throw new Error('"after" query string parameter must be base64-encoded string')
     }
 
     const pageCommentsQuery = `
 issue(number: ${number}) {
+  id
+  number
   url
   comments(first:100${afterKeyFilter}) {
     totalCount
@@ -188,10 +179,10 @@ issue(number: ${number}) {
     return fetchGithubGraphQL(accessToken, headers, pageCommentsQuery)
   },
 
-  postPageComment({ accessToken, body, number }) {
-    const start = Date.now();
+  postPageComment({ accessToken, body, number }): Promise<IGithubCommentInfo> {
+    const start = Date.now()
     if (!(Math.floor(Number(number)) > 0)) {
-      throw new Error("'number' is required integer query string parameter")
+      throw new Error('"number" is required integer query string parameter')
     }
 
     const url = `https://api.github.com/repos/${settings.owner}/${settings.repository}/issues/${number}/comments`
@@ -199,7 +190,7 @@ issue(number: ${number}) {
     return axios
       .post(url, body, { headers })
       .then(response => {
-        const ms = Date.now() - start;
+        const ms = Date.now() - start
         logger.info('POST comment completed', {
           method: 'POST',
           url: url,
@@ -217,7 +208,7 @@ issue(number: ${number}) {
           userAvatar: response.data.user.avatar_url,
         }
       }, err => {
-        const ms = Date.now() - start;
+        const ms = Date.now() - start
         logger.warn('POST comment has errors', {
           method: 'POST',
           url: url,
@@ -233,11 +224,13 @@ issue(number: ${number}) {
       })
   },
 
-  getListPageCommentsCountStats({ headers, body, accessToken }) {
+  getListPageCommentsCountStats({ headers, body, accessToken }): Promise<IFetchGraphQLResult> {
     const issueNumberCommentQueries = body
       .issues
       .map(i => `
 issue${i}: issue(number: ${i}) {
+  id
+  number
   url
   comments {
     totalCount
@@ -246,19 +239,7 @@ issue${i}: issue(number: ${i}) {
     const pageCommentsQuery = issueNumberCommentQueries.join('')
 
     return fetchGithubGraphQL(accessToken, headers, pageCommentsQuery)
-      .then(response => {
-        if (response.responseData
-          && response.responseData.data
-          && response.responseData.data.repository) {
-          const repository = response.responseData.data.repository
-          for (const issueKey in repository) {
-            const issueNumber = issueKey.replace('issue', '')
-            delete Object.assign(repository, {[issueNumber]: repository[issueKey] })[issueKey]
-          }
-        }
-        return response
-      })
   },
 }
 
-module.exports = github
+export default github

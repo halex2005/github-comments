@@ -1,15 +1,14 @@
-const insightOpsLogger = require('r7insight_node');
-const winston = require('winston')
-const winstonLoggly = require('winston-loggly-bulk')
-const httpContext = require('express-http-context');
+import winston from 'winston'
+import httpContext from 'express-http-context'
+import 'r7insight_node'
+import 'winston-loggly-bulk'
 
-export const requestIdHeaderName = "X-Request-Id"
+export const requestIdHeaderName = 'X-Request-Id'
 
-const settings = require('./settings')
+import settings from './settings.json'
 
 const logger = winston.createLogger({
   level: 'info',
-  handleExceptions: true,
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.json()
@@ -26,17 +25,19 @@ const logger = winston.createLogger({
 })
 
 if (settings.loggly && settings.loggly.useLoggly) {
+  // @ts-ignore
   logger.add(new winston.transports.Loggly(settings.loggly))
 }
 
 if (settings.insightOps && settings.insightOps.enabled) {
+  // @ts-ignore
   logger.add(new winston.transports.Logentries({
     token: settings.insightOps.token,
     region: settings.insightOps.region
   }))
 }
 
-export function log(level: string, message: string, additionalInfo: any) {
+function log(level: string, message: string, additionalInfo: any): void {
   logger.log(level, message,
     Object.assign({
       timestamp: new Date().toISOString(),
@@ -44,15 +45,24 @@ export function log(level: string, message: string, additionalInfo: any) {
     }, additionalInfo))
 }
 
-export function debug(message: string, additionalInfo: any) {
+function debug(message: string, additionalInfo: any): void {
   log('debug', message, additionalInfo)
 }
-export function info(message: string, additionalInfo: any) {
+function info(message: string, additionalInfo: any): void {
   log('info', message, additionalInfo)
 }
-export function warn(message: string, additionalInfo: any) {
+function warn(message: string, additionalInfo: any): void {
   log('warn', message, additionalInfo)
 }
-export function error(message: string, additionalInfo: any) {
+function error(message: string, additionalInfo: any): void {
   log('error', message, additionalInfo)
+}
+
+export default {
+  log,
+  debug,
+  info,
+  warn,
+  error,
+  requestIdHeaderName
 }
