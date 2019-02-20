@@ -20,10 +20,11 @@ function CalculateRelativeDate(date: Date): string {
   }
 }
 
-export function RelativeTime({ date }: { date: Date }) {
+export function RelativeTime({ date }: { date: string }) {
+  const d = new Date(date)
   return (
-    <span data-iso-date={date.toISOString()} title={date.toLocaleString()}>
-      {CalculateRelativeDate(date)}
+    <span data-iso-date={d.toISOString()} title={d.toLocaleString()}>
+      {CalculateRelativeDate(d)}
     </span>
   )
 }

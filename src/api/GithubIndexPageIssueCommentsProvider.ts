@@ -1,6 +1,7 @@
 import axios from 'axios'
 import {action, observable} from "mobx";
 import {IGithubCommentInfo, IIssueCommentsCountProvider} from "./IIssueCommentsCountProvider";
+import { IGithubIndexPageCommentsResult } from '../components/interfaces';
 
 export interface IIndexPageIssuesOptions {
   apiRoot: string
@@ -45,15 +46,14 @@ export class GithubIndexPageIssueCommentsProvider implements IIssueCommentsCount
     this.HasError = false
     this.ErrorMessage = ''
 
-    const responseData = response.data;
-    const repository = responseData.data.repository;
-    for (const issueKey in repository) {
-      const commentInfo = this.getCommentsCountForIssue(issueKey)
-      const issue = repository[issueKey]
-      if (issue) {
-        commentInfo.totalCount = (issue.comments && issue.comments.totalCount) || 0
-        commentInfo.issueUrl = issue.url
-      }
+    const responseData: IGithubIndexPageCommentsResult = response.data;
+    if (!responseData.issues) {
+      return
+    }
+    for (const issue of responseData.issues) {
+      const commentInfo = this.getCommentsCountForIssue(String(issue.number))
+      commentInfo.totalCount = issue.commentsTotalCount
+      commentInfo.issueUrl = issue.url
     }
   }
 

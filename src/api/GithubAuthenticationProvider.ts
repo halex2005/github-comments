@@ -1,6 +1,6 @@
 import axios from 'axios'
 import {action, observable} from "mobx";
-import { IGithubUserInfo } from '../components/interfaces';
+import { IGithubUserInfo, IOAuthTokenResult } from '../components/interfaces';
 
 const accessTokenStorageItemName = 'github-comments-access-token'
 const userNameStorageItemName = 'github-comments-user-name'
@@ -89,16 +89,17 @@ export class GithubAuthenticationProvider {
 
   @action.bound
   private getAccessTokenSuccess(response: any) {
-    if (!!response.data.access_token) {
-      window.localStorage.setItem(accessTokenStorageItemName, response.data.access_token)
-      window.localStorage.setItem(userNameStorageItemName, response.data.name)
-      window.localStorage.setItem(userAvatarStorageItemName, response.data.avatarUrl)
-      window.localStorage.setItem(userProfileUrlStorageItemName, response.data.profileUrl)
+    const result: IOAuthTokenResult = response.data
+    if (!!result.access_token) {
+      window.localStorage.setItem(accessTokenStorageItemName, result.access_token)
+      window.localStorage.setItem(userNameStorageItemName, result.name)
+      window.localStorage.setItem(userAvatarStorageItemName, result.avatarUrl)
+      window.localStorage.setItem(userProfileUrlStorageItemName, result.profileUrl)
     }
-    this.accessToken = response.data.access_token
-    this.currentUserInfo.userLogin = response.data.name
-    this.currentUserInfo.userAvatar = response.data.avatarUrl
-    this.currentUserInfo.userUrl = response.data.profileUrl
+    this.accessToken = result.access_token
+    this.currentUserInfo.userLogin = result.name
+    this.currentUserInfo.userAvatar = result.avatarUrl
+    this.currentUserInfo.userUrl = result.profileUrl
     this.inProgress = false
     this.isAuthenticated = !!this.accessToken
     return response

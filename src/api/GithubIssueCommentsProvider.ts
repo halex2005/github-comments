@@ -2,7 +2,7 @@
 import {observable, action, computed} from 'mobx'
 import axios from 'axios'
 import { IGithubCommentInfo, IIssueCommentsCountProvider } from './IIssueCommentsCountProvider'
-import {IGithubComment} from '../components/interfaces'
+import {IGithubComment, IGithubIssueCommentsResult} from '../components/interfaces'
 
 export interface IGithubOptions {
   apiRoot: string,
@@ -56,22 +56,23 @@ export class GithubIssueCommentsProvider implements IIssueCommentsCountProvider 
     this.HasError = false
     this.ErrorMessage = ''
 
-    const responseData = response.data;
-    const pageComments = responseData.data.repository.issue.comments;
-    const newComments = this.Comments.concat(pageComments.nodes.map((comment: any): IGithubComment => ({
-      id: comment.id,
-      url: comment.url,
-      createdAt: new Date(comment.createdAt),
-      body: comment.bodyHTML,
-      userLogin: comment.author.login,
-      userUrl: comment.author.url,
-      userAvatar: comment.author.avatarUrl
-    })))
+    const responseData: IGithubIssueCommentsResult = response.data;
+    if (!responseData || !responseData.issue) {
+      return
+    }
+
+    const issue = responseData.issue;
+    const pageComments = issue.comments;
+    if (!pageComments) {
+      return
+    }
+
+    const newComments = this.Comments.concat(pageComments)
     this.Comments = newComments
-    this.CommentsTotalCount = pageComments.totalCount
-    this.CanShowMoreComments = !!pageComments.pageInfo.hasNextPage
-    this.DirectIssueLink = responseData.data.repository.issue.url
-    this.nextAfterKey = `?after=${pageComments.pageInfo.endCursor}`
+    this.CommentsTotalCount = issue.commentsTotalCount
+    this.CanShowMoreComments = !!(issue.commentsCursor && issue.commentsCursor.hasNextPage)
+    this.DirectIssueLink = issue.url
+    this.nextAfterKey = `?after=${issue.commentsCursor && issue.commentsCursor.endCursor}`
 
     return newComments
   }
