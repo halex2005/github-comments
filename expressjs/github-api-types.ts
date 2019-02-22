@@ -1,20 +1,20 @@
-export interface IRateLimit {
+export interface IGitHubErrorDetails {
+  message: string;
+}
+
+export interface IGraphQLRateLimit {
   limit: number;
   cost: number;
   remaining: number;
   resetAt: string;
 }
 
-export interface IErrorDetails {
-  message: string;
-}
-
 export interface IGraphQLResult {
   data: {
     repository: any;
-    rateLimit: IRateLimit;
+    rateLimit: IGraphQLRateLimit;
   };
-  errors?: IErrorDetails[];
+  errors?: IGitHubErrorDetails[];
 }
 
 export interface IFetchGraphQLResult {
@@ -24,52 +24,22 @@ export interface IFetchGraphQLResult {
   responseStatusText: string;
 }
 
-export interface IOAuthTokenResult {
-  access_token: string;
+export interface IGithubOAuthTokenResult {
+  accessToken: string;
   scope: string;
-  token_type: string;
+  tokenType?: string;
 }
 
-export interface IGithubUserInfo {
-  name: string;
-  avatarUrl: string;
-  profileUrl: string;
-}
-
-export interface IGithubCommentInfo {
+export interface IGithubCommentInfo extends IGithubUserInfo {
   id: string;
   url: string;
   createdAt: string;
   body: string;
+}
+
+export interface IGithubUserInfo {
   userLogin: string;
   userUrl: string;
   userAvatar: string;
-}
-
-export interface IGithubIssueCommentsResult {
-  rateLimit: IRateLimit;
-  errors?: IErrorDetails[];
-  issue?: IGithubIssueCommentsInfo;
-}
-
-export interface IGithubIssueCommentsInfo {
-  id: string;
-  number: number;
-  url: string;
-  commentsTotalCount: number;
-  commentsCursor?: IPageCursorInfo;
-  comments?: IGithubCommentInfo[];
-}
-
-export interface IPageCursorInfo {
-  startCursor: string;
-  endCursor: string;
-  hasNextPage: boolean;
-}
-
-export interface IGithubIndexPageCommentsResult {
-  rateLimit: IRateLimit;
-  errors?: IErrorDetails[];
-  issues?: IGithubIssueCommentsInfo[];
 }
 

@@ -21,7 +21,7 @@ const logger = winston.createLogger({
       maxFiles: 5,
       tailable: true,
     })
-  ]
+  ],
 })
 
 if (settings.loggly && settings.loggly.useLoggly) {
@@ -33,7 +33,7 @@ if (settings.insightOps && settings.insightOps.enabled) {
   // @ts-ignore
   logger.add(new winston.transports.Logentries({
     token: settings.insightOps.token,
-    region: settings.insightOps.region
+    region: settings.insightOps.region,
   }))
 }
 
@@ -41,7 +41,7 @@ function log(level: string, message: string, additionalInfo: any): void {
   logger.log(level, message,
     Object.assign({
       timestamp: new Date().toISOString(),
-      requestId: httpContext.get(requestIdHeaderName)
+      requestId: httpContext.get(requestIdHeaderName),
     }, additionalInfo))
 }
 
@@ -64,5 +64,5 @@ export default {
   info,
   warn,
   error,
-  requestIdHeaderName
+  requestIdHeaderName,
 }

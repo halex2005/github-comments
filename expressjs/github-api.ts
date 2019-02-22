@@ -1,4 +1,5 @@
 import axios from 'axios'
+import logger from './logger'
 import settings from './settings.json'
 import {
   getRateLimitsFromHeaders,
@@ -6,8 +7,12 @@ import {
   getResponseHeaders,
   tryParseBase64,
 } from './github-api-helpers'
-import logger from './logger'
-import {IFetchGraphQLResult, IGithubCommentInfo, IGithubUserInfo, IOAuthTokenResult} from './github-api-types'
+import {
+  IFetchGraphQLResult,
+  IGithubCommentInfo,
+  IGithubOAuthTokenResult,
+  IGithubUserInfo,
+} from './github-api-types'
 
 function fetchGithubGraphQL(accessToken, headers, repositoryQuery): Promise<IFetchGraphQLResult> {
   const start = Date.now()
@@ -23,9 +28,7 @@ query {
     resetAt
   }
 }`
-  const body = JSON.stringify({
-    query: graphQlQuery
-  })
+  const body = JSON.stringify({ query: graphQlQuery })
   const url = 'https://api.github.com/graphql'
   const requestHeaders = Object.assign(
     { 'Authorization': `bearer ${accessToken || settings.authToken}` },
@@ -75,7 +78,7 @@ query {
 }
 
 const github = {
-  getOAuthAccessToken(code): Promise<IOAuthTokenResult> {
+  getOAuthAccessToken(code): Promise<IGithubOAuthTokenResult> {
     const start = Date.now()
     const url = `https://github.com/login/oauth/access_token?client_id=${settings.clientId}&client_secret=${settings.clientSecret}&code=${code}`
     return axios
@@ -89,7 +92,11 @@ const github = {
           statusText: response.statusText,
           duration: ms,
         })
-        return Promise.resolve(response.data)
+        return Promise.resolve({
+          accessToken: response.data.accessToken,
+          scope: response.data.scope,
+          tokenType: response.data.token_type,
+        })
       }, err => {
         const ms = Date.now() - start
         logger.warn('OAuth: access token request failed', {
@@ -121,9 +128,9 @@ const github = {
           limits: getRateLimitsFromHeaders(response.headers),
         })
         return {
-          name: response.data.name,
-          avatarUrl: response.data.avatar_url,
-          profileUrl: response.data.html_url
+          userLogin: response.data.name,
+          userAvatar: response.data.avatar_url,
+          userUrl: response.data.html_url,
         }
       }, err => {
         const ms = Date.now() - start

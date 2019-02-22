@@ -7,7 +7,11 @@ import winstonLoggly from 'winston-loggly-bulk'
 import github from './github-api'
 import settings from './settings.json'
 import logger from './logger'
-import {IGithubIndexPageCommentsResult, IGithubIssueCommentsResult} from './github-api-types'
+import {
+  IIndexPageCommentsResult,
+  IIssueCommentsResult,
+  IOAuthTokenResult,
+} from './app-types'
 
 const app = express()
 
@@ -49,7 +53,7 @@ app.use((req, res, next) => {
       useragent: req.get('user-agent'),
       referer: req.get('Referrer'),
       route: req.route && req.route.path,
-      routeParams: req.params
+      routeParams: req.params,
     })
   })
   next()
@@ -70,13 +74,48 @@ app.use(express.json())
 // lowercase query string parameters
 
 app.use((req, res, next) => {
-  for (var key in req.query) {
+  for (const key in req.query) {
     req.query[key.toLowerCase()] = req.query[key]
   }
   next()
 })
 
 // router
+
+app.get('/oauth/login', (req, res) => {
+  if (!req.query.code) {
+    res.status(404).send({ error: 'code query parameter is required' })
+    return
+  }
+  return github
+    .getOAuthAccessToken(req.query.code)
+    .then(oauthResponseData => github
+      .getCurrentAuthenticatedUserInfo(oauthResponseData.accessToken)
+      .then(userResponse => {
+        const result: IOAuthTokenResult = {
+          ...userResponse,
+          ...oauthResponseData,
+        }
+        res.cookie(accessTokenCookieName, oauthResponseData.accessToken)
+        res.status(200).send(result)
+      })
+    )
+    .catch(err => res.status(400).send(err))
+})
+
+app.get('/oauth/logout', (req, res) => {
+  const accessToken = (req.cookies && req.cookies[accessTokenCookieName])
+    || (req.query && req.query.accessToken)
+  if (!accessToken) {
+    res.sendStatus(404)
+    return
+  }
+  logger.info('OAuth: logout', {
+    token: accessToken,
+  })
+  res.clearCookie(accessTokenCookieName, { domain: settings.domain })
+  res.sendStatus(200)
+})
 
 // supported query parameters:
 // - after
@@ -85,10 +124,10 @@ app.get('/page-comments/:number', (req, res) => github
     headers: req.headers,
     query: req.query,
     number: req.params.number,
-    accessToken: req.cookies && req.cookies[accessTokenCookieName]
+    accessToken: req.cookies && req.cookies[accessTokenCookieName],
   })
   .then(({ responseData, responseHeaders, responseStatus }) => {
-    const result: IGithubIssueCommentsResult = {
+    const result: IIssueCommentsResult = {
       rateLimit: responseData.data.rateLimit,
       errors: responseData.errors,
       issue: {
@@ -104,9 +143,9 @@ app.get('/page-comments/:number', (req, res) => github
           createdAt: n.createdAt,
           userLogin: n.author.login,
           userUrl: n.author.url,
-          userAvatar: n.author.avatarUrl,
-        }))
-      }
+          userAvatar: n.author.userAvatar,
+        })),
+      },
     }
     res.set(responseHeaders)
     res.status(responseStatus).send(result)
@@ -114,13 +153,14 @@ app.get('/page-comments/:number', (req, res) => github
 
 app.post('/page-comments/:number', (req, res) => {
   const accessToken = (req.cookies && req.cookies[accessTokenCookieName])
-    || (req.query && req.query.access_token)
-  const body = req.body
+    || (req.query && req.query.accessToken)
+  const { body } = req
   if (!accessToken || !body) {
     res.sendStatus(400)
     return
   }
-  return github.postPageComment({ accessToken, body, number: req.params.number })
+  return github
+    .postPageComment({ accessToken, body, number: req.params.number })
     .then(
       data => res.status(201).send(data),
       err => res.status(err.status).send(err.errors))
@@ -130,10 +170,10 @@ app.post('/index-page-comments-count', (req, res) => github
   .getListPageCommentsCountStats({
     headers: req.headers,
     body: req.body,
-    accessToken: req.cookies && req.cookies[accessTokenCookieName]
+    accessToken: req.cookies && req.cookies[accessTokenCookieName],
   })
-  .then(({ responseData, responseHeaders, responseStatus }) => {
-    const result: IGithubIndexPageCommentsResult = {
+  .then(({ responseData, responseHeaders }) => {
+    const result: IIndexPageCommentsResult = {
       rateLimit: responseData.data.rateLimit,
       errors: responseData.errors,
       issues: Object
@@ -144,45 +184,14 @@ app.post('/index-page-comments-count', (req, res) => github
             id: issue.id,
             number: issue.number,
             url: issue.url,
-            commentsTotalCount: issue.comments.totalCount
+            commentsTotalCount: issue.comments.totalCount,
           }
-        })
+        }),
     }
     res.set(responseHeaders)
-    res.status(responseStatus).send(result)
+    res.status(200).send(result)
   }, err => res.status(400).send(err.responseData))
 )
-
-app.get('/oauth/logout', (req, res) => {
-  const accessToken = (req.cookies && req.cookies[accessTokenCookieName])
-    || (req.query && req.query['access_token'])
-  if (!accessToken) {
-    res.sendStatus(404)
-    return
-  }
-  logger.info('OAuth: logout', {
-    token: accessToken
-  })
-  res.clearCookie(accessTokenCookieName, { domain: settings.domain })
-  res.sendStatus(200)
-})
-
-app.get('/oauth/access-token', (req, res) => {
-  if (!req.query.code) {
-    res.status(404).send({ error: 'code query parameter is required' })
-    return
-  }
-  return github
-    .getOAuthAccessToken(req.query.code)
-    .then(oauthResponseData => github
-      .getCurrentAuthenticatedUserInfo(oauthResponseData.access_token)
-      .then(userResponse => {
-        res.cookie(accessTokenCookieName, oauthResponseData.access_token)
-        res.status(200).send(Object.assign(userResponse, oauthResponseData))
-      })
-    )
-    .catch(err => res.status(400).send(err))
-})
 
 if (Sentry) {
   app.use(Sentry.Handlers.errorHandler())
@@ -202,7 +211,7 @@ if (processEnvPortNumber) {
   app.listen(processEnvPortNumber, () => logger.info('Application started', { port: processEnvPortNumber }))
 }
 
-process.on('exit', (code) => {
+process.on('exit', code => {
   logger.info('Process exit', { code: code })
   winstonLoggly.flushLogsAndExit()
 })

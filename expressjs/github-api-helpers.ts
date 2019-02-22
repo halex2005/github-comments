@@ -43,8 +43,7 @@ export function tryParseBase64(value): boolean {
   try {
     Buffer.from(value, 'base64')
     return base64regex.test(value)
-  }
-  catch (e) {
+  } catch (e) {
     return false
   }
 }
@@ -54,6 +53,6 @@ export function getRateLimitsFromHeaders(headers): any {
     limit: headers['x-ratelimit-limit'] && Number(headers['x-ratelimit-limit']),
     cost: headers['x-ratelimit-cost'] && Number(headers['x-ratelimit-cost']) || 1,
     remaining: headers['x-ratelimit-remaining'] && Number(headers['x-ratelimit-remaining']),
-    resetAt: headers['x-ratelimit-reset'] && new Date(Number(headers['x-ratelimit-reset'])*1000).toISOString(),
+    resetAt: headers['x-ratelimit-reset'] && new Date(Number(headers['x-ratelimit-reset']) * 1000).toISOString(),
   }
 }
