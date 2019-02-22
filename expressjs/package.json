@@ -1,13 +1,16 @@
 {
-  "name": "vue-github-comments-backend",
+  "name": "github-comments-expressjs-backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
+    "precommit": "lint-staged",
     "start": "PORT=4000 node dist/app.js",
     "watch": "PORT=4000 nodemon dist/app.js",
     "build-ts": "tsc",
     "watch-ts": "tsc -w",
+    "lint": "eslint .",
+    "lint:write": "eslint . --fix",
     "test": "jest"
   },
   "author": "Aleksei Kharlov aka halex2005",
@@ -32,7 +35,14 @@
     "@typescript-eslint/parser": "^1.4.0",
     "eslint": "^5.14.1",
     "jest": "^24.1.0",
+    "lint-staged": "^8.1.4",
     "nodemon": "^1.18.10",
     "typescript": "^3.3.3"
+  },
+  "lint-staged": {
+    "*.(ts|tsx|js|jsx)": [
+      "eslint --fix",
+      "git add"
+    ]
   }
 }

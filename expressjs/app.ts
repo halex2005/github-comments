@@ -26,9 +26,7 @@ const accessTokenCookieName = 'github-comments-access-token'
 
 app.use(httpContext.middleware)
 app.use(function(req, res, next) {
-  const requestId = !!req.get(logger.requestIdHeaderName)
-    ? req.get(logger.requestIdHeaderName)
-    : uuid.v4()
+  const requestId = req.get(logger.requestIdHeaderName) || uuid.v4()
   httpContext.set(logger.requestIdHeaderName, requestId)
   res.set(logger.requestIdHeaderName, requestId)
   next()

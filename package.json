@@ -1,0 +1,15 @@
+{
+  "name": "github-comments",
+  "author": "Aleksei Kharlov aka halex2005",
+  "license": "MIT",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "devDependencies": {
+    "husky": "^1.3.1",
+    "lerna": "^3.13.0"
+  },
+  "scripts": {
+    "precommit": "lerna run --concurrency 1 --stream precommit"
+  }
+}
