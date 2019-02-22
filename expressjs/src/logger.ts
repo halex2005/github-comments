@@ -5,7 +5,7 @@ import 'winston-loggly-bulk'
 
 export const requestIdHeaderName = 'X-Request-Id'
 
-import settings from './settings.json'
+import settings from '../settings.json'
 
 const logger = winston.createLogger({
   level: 'info',

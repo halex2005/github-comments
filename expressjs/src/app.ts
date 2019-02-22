@@ -5,7 +5,7 @@ import uuid from 'uuid'
 import winstonLoggly from 'winston-loggly-bulk'
 
 import github from './github-api'
-import settings from './settings.json'
+import settings from '../settings.json'
 import logger from './logger'
 import {
   IIndexPageCommentsResult,

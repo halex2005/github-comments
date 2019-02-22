@@ -5,7 +5,7 @@ const http = require('http')
 const process = require('process')
 const winston = require('winston')
 const winstonLoggly = require('winston-loggly-bulk')
-const github = require('../expressjs/github-api')
+const github = require('../expressjs/src/github-api')
 
 const settings = require('./settings')
 const app = new koa()

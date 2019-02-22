@@ -1,6 +1,6 @@
 import axios from 'axios'
 import logger from './logger'
-import settings from './settings.json'
+import settings from '../settings.json'
 import {
   getRateLimitsFromHeaders,
   getUsableHeaders,
