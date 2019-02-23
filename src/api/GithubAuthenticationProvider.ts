@@ -90,16 +90,16 @@ export class GithubAuthenticationProvider {
   @action.bound
   private getAccessTokenSuccess(response: any) {
     const result: IOAuthTokenResult = response.data
-    if (!!result.access_token) {
-      window.localStorage.setItem(accessTokenStorageItemName, result.access_token)
-      window.localStorage.setItem(userNameStorageItemName, result.name)
-      window.localStorage.setItem(userAvatarStorageItemName, result.avatarUrl)
-      window.localStorage.setItem(userProfileUrlStorageItemName, result.profileUrl)
+    if (!!result.accessToken) {
+      window.localStorage.setItem(accessTokenStorageItemName, result.accessToken)
+      window.localStorage.setItem(userNameStorageItemName, result.userLogin)
+      window.localStorage.setItem(userAvatarStorageItemName, result.userAvatar)
+      window.localStorage.setItem(userProfileUrlStorageItemName, result.userUrl)
     }
-    this.accessToken = result.access_token
-    this.currentUserInfo.userLogin = result.name
-    this.currentUserInfo.userAvatar = result.avatarUrl
-    this.currentUserInfo.userUrl = result.profileUrl
+    this.accessToken = result.accessToken
+    this.currentUserInfo.userLogin = result.userLogin
+    this.currentUserInfo.userAvatar = result.userAvatar
+    this.currentUserInfo.userUrl = result.userUrl
     this.inProgress = false
     this.isAuthenticated = !!this.accessToken
     return response

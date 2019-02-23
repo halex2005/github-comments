@@ -1,19 +1,16 @@
-export interface IGithubUserInfo {
+export interface IUserInfo {
   userLogin: string,
   userUrl: string,
   userAvatar: string,
 }
 
-export interface IOAuthTokenResult {
-  access_token: string,
-  scope: string,
-  token_type: string,
-  name: string,
-  avatarUrl: string,
-  profileUrl: string
+export interface IOAuthTokenResult extends IUserInfo {
+  accessToken: string;
+  scope: string;
+  tokenType?: string;
 }
 
-export interface IGithubComment extends IGithubUserInfo {
+export interface IGithubComment extends IUserInfo {
   id: string,
   url: string,
   createdAt: string,
