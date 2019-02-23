@@ -54,4 +54,3 @@ export interface IPageCursorInfo {
   endCursor: string;
   hasNextPage: boolean;
 }
-

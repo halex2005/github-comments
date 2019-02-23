@@ -59,7 +59,7 @@ app.use((req, res, next) => {
 
 // enable CORS
 
-app.use(function(req, res, next) {
+app.use((req, res: express.Response, next) => {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
   next()
@@ -80,7 +80,7 @@ app.use((req, res, next) => {
 
 // router
 
-app.get('/oauth/login', (req, res) => {
+app.get('/oauth/login', (req: express.Request, res: express.Response) => {
   if (!req.query.code) {
     res.status(404).send({ error: 'code query parameter is required' })
     return
@@ -101,7 +101,7 @@ app.get('/oauth/login', (req, res) => {
     .catch(err => res.status(400).send(err))
 })
 
-app.get('/oauth/logout', (req, res) => {
+app.get('/oauth/logout', (req: express.Request, res: express.Response) => {
   const accessToken = (req.cookies && req.cookies[accessTokenCookieName])
     || (req.query && req.query.accessToken)
   if (!accessToken) {
@@ -117,7 +117,7 @@ app.get('/oauth/logout', (req, res) => {
 
 // supported query parameters:
 // - after
-app.get('/page-comments/:number', (req, res) => github
+app.get('/page-comments/:number', (req: express.Request, res: express.Response) => github
   .getPageComments({
     headers: req.headers,
     query: req.query,
@@ -139,9 +139,9 @@ app.get('/page-comments/:number', (req, res) => github
           url: n.url,
           body: n.bodyHTML,
           createdAt: n.createdAt,
-          userLogin: n.author.login,
-          userUrl: n.author.url,
-          userAvatar: n.author.userAvatar,
+          userLogin: n.author && n.author.login,
+          userUrl: n.author && n.author.url,
+          userAvatar: n.author && n.author.avatarUrl,
         })),
       },
     }
@@ -149,7 +149,7 @@ app.get('/page-comments/:number', (req, res) => github
     res.status(responseStatus).send(result)
   }, err => res.status(400).send(err.responseData)))
 
-app.post('/page-comments/:number', (req, res) => {
+app.post('/page-comments/:number', (req: express.Request, res: express.Response) => {
   const accessToken = (req.cookies && req.cookies[accessTokenCookieName])
     || (req.query && req.query.accessToken)
   const { body } = req
@@ -164,7 +164,7 @@ app.post('/page-comments/:number', (req, res) => {
       err => res.status(err.status).send(err.errors))
 })
 
-app.post('/index-page-comments-count', (req, res) => github
+app.post('/index-page-comments-count', (req: express.Request, res: express.Response) => github
   .getListPageCommentsCountStats({
     headers: req.headers,
     body: req.body,
