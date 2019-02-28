@@ -1,59 +1,63 @@
-import { observable, action } from 'mobx';
-import axios from 'axios';
+import { observable, action } from 'mobx'
+import axios from 'axios'
 
 export class GithubMarkdownPreviewProvider {
   private accessToken = '';
-  @observable Markdown = '';
-  @observable Html = '';
-  @observable PreviewIsActive = false;
-  @observable PreviewInProgress = false;
 
-  constructor(accessToken: string) {
-    this.accessToken = accessToken;
+  @observable public Markdown = '';
+
+  @observable public Html = '';
+
+  @observable public PreviewIsActive = false;
+
+  @observable public PreviewInProgress = false;
+
+  public constructor(accessToken: string) {
+    this.accessToken = accessToken
   }
 
   @action.bound
   public setMarkdown(markdown: string) {
-    this.Markdown = markdown;
+    this.Markdown = markdown
   }
 
   @action.bound
   public setPreviewIsActive(isActive: boolean) {
-    if (this.PreviewIsActive != isActive && isActive) {
-      this.fetchHtmlPreview();
+    if (this.PreviewIsActive !== isActive && isActive) {
+      this.fetchHtmlPreview()
     }
-    this.PreviewIsActive = isActive;
+    this.PreviewIsActive = isActive
   }
 
   @action.bound
   public fetchHtmlPreview() {
     if (this.PreviewInProgress) {
-      return;
+      return
     }
     if (this.Markdown === '') {
-      return;
+      return
     }
-    this.PreviewInProgress = true;
+    this.PreviewInProgress = true
     return axios.post(
       'https://api.github.com/markdown', {
         text: this.Markdown,
         mode: 'gfm',
       }, {
-        headers: { 'Authorization': 'bearer ' + this.accessToken }
+        headers: { 'Authorization': `bearer ${this.accessToken}` },
       })
-      .then(this.onPreviewCompleted, this.onPreviewError);
+      .then(this.onPreviewCompleted, this.onPreviewError)
   }
 
   @action.bound
   private onPreviewCompleted(response: any) {
-    this.PreviewInProgress = false;
-    this.Html = response.data;
+    this.PreviewInProgress = false
+    this.Html = response.data
   }
 
   @action.bound
   private onPreviewError(err: any) {
-    this.PreviewInProgress = false;
-    this.Html = `<div class="bg-error">${err.response.data}</div>`;
-    return Promise.resolve();
+    this.PreviewInProgress = false
+    this.Html = `<div class="bg-error">${err.response.data}</div>`
+    return Promise.resolve()
   }
 }

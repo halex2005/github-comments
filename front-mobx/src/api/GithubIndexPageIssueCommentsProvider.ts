@@ -1,21 +1,24 @@
 import axios from 'axios'
-import {action, observable} from "mobx";
-import {IGithubCommentInfo, IIssueCommentsCountProvider} from "./IIssueCommentsCountProvider";
-import { IGithubIndexPageCommentsResult } from '../components/interfaces';
+import { action, observable } from 'mobx'
+import { IGithubCommentInfo, IIssueCommentsCountProvider } from './IIssueCommentsCountProvider'
+import { IGithubIndexPageCommentsResult } from '../components/interfaces'
 
 export interface IIndexPageIssuesOptions {
-  apiRoot: string
+  apiRoot: string;
 }
 
 export class GithubIndexPageIssueCommentsProvider implements IIssueCommentsCountProvider {
   private options: IIndexPageIssuesOptions
 
   @observable public Issues = new Map<string, IGithubCommentInfo>()
+
   @observable public FetchInProgress: boolean = false
+
   @observable public HasError = false
+
   @observable public ErrorMessage = ''
 
-  constructor(options: IIndexPageIssuesOptions) {
+  public constructor(options: IIndexPageIssuesOptions) {
     this.options = options
   }
 
@@ -23,12 +26,13 @@ export class GithubIndexPageIssueCommentsProvider implements IIssueCommentsCount
     if (!this.Issues.has(issueNumber)) {
       this.Issues.set(issueNumber, { totalCount: 0, issueUrl: '' })
     }
+
     // @ts-ignore
-    return this.Issues.get(issueNumber);
+    return this.Issues.get(issueNumber)
   }
 
   @action.bound
-  public loadCommentsCount() {
+  public loadCommentsCount(): Promise<void> {
     if (this.FetchInProgress) {
       return Promise.reject('fetch laready in progress')
     }
@@ -36,17 +40,17 @@ export class GithubIndexPageIssueCommentsProvider implements IIssueCommentsCount
     return axios
       .post(
         `${this.options.apiRoot || '/api'}/index-page-comments-count`,
-        {issues: Array.from(this.Issues.keys())})
+        { issues: Array.from(this.Issues.keys()) })
       .then(this.onLoadCommentsCountSuccess, this.onLoadCommentsCountError)
   }
 
   @action.bound
-  public onLoadCommentsCountSuccess(response: any) {
+  private onLoadCommentsCountSuccess(response: any): void {
     this.FetchInProgress = false
     this.HasError = false
     this.ErrorMessage = ''
 
-    const responseData: IGithubIndexPageCommentsResult = response.data;
+    const responseData: IGithubIndexPageCommentsResult = response.data
     if (!responseData.issues) {
       return
     }
@@ -58,7 +62,7 @@ export class GithubIndexPageIssueCommentsProvider implements IIssueCommentsCount
   }
 
   @action.bound
-  public onLoadCommentsCountError(error: any) {
+  private onLoadCommentsCountError(error: any): void {
     this.FetchInProgress = false
     this.HasError = true
     this.ErrorMessage = error.errors

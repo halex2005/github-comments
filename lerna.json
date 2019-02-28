@@ -1,6 +1,7 @@
 {
   "packages": [
-    "expressjs"
+    "expressjs",
+    "front-mobx"
   ],
   "version": "0.0.0"
 }

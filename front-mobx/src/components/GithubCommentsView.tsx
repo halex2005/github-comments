@@ -1,12 +1,11 @@
-// @ts-ignore
 import * as React from 'react'
 import { observer } from 'mobx-react'
-import { GithubComment } from "./GithubComent"
-import { GithubIssueCommentsProvider } from '../api/GithubIssueCommentsProvider';
+import { GithubComment } from './GithubComent'
+import { GithubIssueCommentsProvider } from '../api/GithubIssueCommentsProvider'
 import './styles.css'
 
 interface IProps {
-  provider: GithubIssueCommentsProvider
+  provider: GithubIssueCommentsProvider;
 }
 
 export const GithubCommentsView = observer(

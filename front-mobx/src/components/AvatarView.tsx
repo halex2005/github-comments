@@ -1,7 +1,7 @@
 import * as React from 'react'
-import {IGithubUserInfo} from "./interfaces";
+import { IUserInfo } from './interfaces'
 
-export function AvatarView({ userInfo }: { userInfo: IGithubUserInfo }) {
+export function AvatarView({ userInfo }: { userInfo: IUserInfo }) {
   return (
     <div className="avatar-container">
       <a href={userInfo.userUrl} rel="nofollow">

@@ -412,4 +412,5 @@ __pycache__/
 
 # End of https://www.gitignore.io/api/intellij,webstorm,visualstudio,visualstudiocode
 
-**/dist/
+dist/
+build/

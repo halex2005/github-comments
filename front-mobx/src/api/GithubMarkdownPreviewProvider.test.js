@@ -7,10 +7,10 @@ const expectedMarkdown = 'some **markdown** here'
 const expectedHtml = 'some <em>markdown</em> here'
 
 describe('github markdown preview provider', () => {
-  let provider = null
+  let provider
 
   beforeEach(() => {
-    provider = new GithubMarkdownPreviewProvider({ accessToken: 'accessToken' })
+    provider = new GithubMarkdownPreviewProvider('accessToken')
   })
 
   describe('set markdown', () => {
@@ -26,8 +26,8 @@ describe('github markdown preview provider', () => {
       provider.setPreviewIsActive(true)
     })
 
-    it ('no network call should be made', () => {
-      expect(axios.post.mock.calls.length).toEqual(0)
+    it('no network call should be made', () => {
+      expect(axios.post.mock.calls).toHaveLength(0)
       expect(provider.PreviewInProgress).toEqual(false)
     })
   })
@@ -42,15 +42,15 @@ describe('github markdown preview provider', () => {
         provider.setPreviewIsActive(true)
       })
 
-      it ('network call should be made', () => {
-        expect(axios.post.mock.calls.length).toEqual(1)
+      it('network call should be made', () => {
+        expect(axios.post.mock.calls).toHaveLength(1)
         expect(axios.post.mock.calls[0][1]).toEqual({
           text: expectedMarkdown,
-          mode: 'gfm'
+          mode: 'gfm',
         })
       })
 
-      it ('html property should be filled', () => {
+      it('html property should be filled', () => {
         expect(provider.Html).toEqual(expectedHtml)
         expect(provider.PreviewInProgress).toEqual(false)
       })
@@ -62,7 +62,7 @@ describe('github markdown preview provider', () => {
         provider.setPreviewIsActive(true)
       })
 
-      it ('html property should contains error message', () => {
+      it('html property should contains error message', () => {
         expect(provider.Html).toContain('errorMessage')
         expect(provider.PreviewInProgress).toEqual(false)
       })
@@ -70,11 +70,11 @@ describe('github markdown preview provider', () => {
 
     describe('continuous preview response', () => {
       beforeEach(() => {
-        axios.post.mockReturnValue(new Promise((resolve, reject) => {}))
+        axios.post.mockReturnValue(new Promise(() => {}))
         provider.setPreviewIsActive(true)
       })
 
-      it ('preview should be in progress', () => {
+      it('preview should be in progress', () => {
         expect(provider.PreviewInProgress).toEqual(true)
       })
     })
@@ -84,8 +84,8 @@ describe('github markdown preview provider', () => {
 
 function getMarkdownPreviewResult() {
   return {
-    "status": 200,
-    "data": expectedHtml
+    'status': 200,
+    'data': expectedHtml,
   }
 }
 
@@ -94,7 +94,7 @@ function getErrorStatusCodeResult(statusCode, data) {
     message: 'error happens',
     response: {
       status: statusCode,
-      data: data
-    }
+      data: data,
+    },
   }
 }

@@ -1,17 +1,17 @@
 import React from 'react'
-import { GithubPostCommentEdit } from './GithubPostCommentEdit';
-import { GithubPostCommentPreviewTabs } from './GithubPostCommentPreviewTabs';
-import { GithubMarkdownPreviewProvider } from '../../api/GithubMarkdownPreviewProvider';
+import { GithubPostCommentEdit } from './GithubPostCommentEdit'
+import { GithubPostCommentPreviewTabs } from './GithubPostCommentPreviewTabs'
+import { GithubMarkdownPreviewProvider } from '../../api/GithubMarkdownPreviewProvider'
 import './GithubPostComment.css'
-import { AvatarView } from '../AvatarView';
-import { GithubAuthenticationProvider } from '../../api/GithubAuthenticationProvider';
+import { AvatarView } from '../AvatarView'
+import { GithubAuthenticationProvider } from '../../api/GithubAuthenticationProvider'
 
-export const GithubPostCommentContainer = ({ authProvider, doPostCommentMarkdown }: { authProvider: GithubAuthenticationProvider, doPostCommentMarkdown: any }) => {
-  const postCommentLocalState = new GithubMarkdownPreviewProvider(authProvider.accessToken)
+export const GithubPostCommentContainer = ({ authProvider, doPostCommentMarkdown }: { authProvider: GithubAuthenticationProvider; doPostCommentMarkdown: any }) => {
+  const postCommentLocalState = new GithubMarkdownPreviewProvider(authProvider.AccessToken)
   return (
     <div className="post-comment-container">
       <div className="post-comment-avatar">
-        <AvatarView userInfo={authProvider.currentUserInfo} />
+        <AvatarView userInfo={authProvider.CurrentUserInfo} />
       </div>
       <div className="post-comment-edit">
         <GithubPostCommentPreviewTabs provider={postCommentLocalState} />
@@ -29,8 +29,12 @@ export const GithubPostCommentContainer = ({ authProvider, doPostCommentMarkdown
               })
             }
           >Post comment</button>
-          <a href="https://guides.github.com/features/mastering-markdown/" target="_blank">
-            <i className="fa fa-markdown"></i>
+          <a
+            href="https://guides.github.com/features/mastering-markdown/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i className="fa fa-markdown"/>
             Styling with Markdown is supported
           </a>
         </div>

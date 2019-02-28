@@ -1,22 +1,23 @@
 import React from 'react'
 import * as ReactDOM from 'react-dom'
-import { GithubIssueCommentsProvider } from './api/GithubIssueCommentsProvider';
-import { GithubCommentsCountView } from './components/GithubCommentsCountView';
-import { GithubCommentsView } from './components/GithubCommentsView';
-import { GithubIndexPageIssueCommentsProvider } from './api/GithubIndexPageIssueCommentsProvider';
-import { GithubAuthenticationView } from './components/GithubAuthenticationView';
-import { GithubPostCommentView } from './components/GithubPostCommentView';
-import { GithubAuthenticationProvider } from './api/GithubAuthenticationProvider';
+import { GithubIssueCommentsProvider } from './api/GithubIssueCommentsProvider'
+import { GithubCommentsCountView } from './components/GithubCommentsCountView'
+import { GithubCommentsView } from './components/GithubCommentsView'
+import { GithubIndexPageIssueCommentsProvider } from './api/GithubIndexPageIssueCommentsProvider'
+import { GithubAuthenticationView } from './components/GithubAuthenticationView'
+import { GithubPostCommentView } from './components/GithubPostCommentView'
+import { GithubAuthenticationProvider } from './api/GithubAuthenticationProvider'
 
 export class GithubCommentsGlobal {
-  private apiRoot = ''
-  private authenticationProvider: GithubAuthenticationProvider
+  private readonly apiRoot: string
 
-  constructor(apiRoot: string, clientId: string) {
+  private readonly authenticationProvider: GithubAuthenticationProvider
+
+  public constructor(apiRoot: string, clientId: string) {
     this.apiRoot = apiRoot
     this.authenticationProvider = new GithubAuthenticationProvider({
       apiRoot,
-      clientId
+      clientId,
     })
   }
 
@@ -24,10 +25,10 @@ export class GithubCommentsGlobal {
     element: HTMLElement,
     commentsCountElement: HTMLElement,
     issueNumber: string,
-  ) {
+  ): void {
     const provider = new GithubIssueCommentsProvider({
       apiRoot: this.apiRoot,
-      issueNumber: issueNumber
+      issueNumber: issueNumber,
     })
     provider.loadMoreComments()
     if (commentsCountElement) {
@@ -49,10 +50,10 @@ export class GithubCommentsGlobal {
     }
   }
 
-  public renderIndexPageCommentsCount(elementsDataName: string) {
+  public renderIndexPageCommentsCount(elementsDataName: string): Promise<void> {
     const elements = document.getElementsByName(elementsDataName)
 
-    const provider = new GithubIndexPageIssueCommentsProvider({apiRoot: this.apiRoot})
+    const provider = new GithubIndexPageIssueCommentsProvider({ apiRoot: this.apiRoot })
 
     for (let i = 0; i < elements.length; i++) {
       const e = elements[i]
@@ -69,10 +70,10 @@ export class GithubCommentsGlobal {
     return provider.loadCommentsCount()
   }
 
-  public renderAuthentication(rootElement: HTMLElement) {
+  public renderAuthentication(rootElement: HTMLElement): void {
     if (rootElement) {
       ReactDOM.render(
-        <GithubAuthenticationView  provider={this.authenticationProvider} />,
+        <GithubAuthenticationView provider={this.authenticationProvider} />,
         rootElement)
     }
   }

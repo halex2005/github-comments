@@ -1,0 +1,45 @@
+root: true
+env:
+  node: true
+  es6: true
+  browser: true
+  jest: true
+  jest/globals: true
+extends:
+  - ../.eslintrc.yml
+  - 'plugin:react/recommended'
+globals:
+  Atomics: readonly
+  SharedArrayBuffer: readonly
+parser: '@typescript-eslint/parser'
+settings:
+  'import/resolver':
+    node:
+      extensions:
+        - js
+        - jsx
+        - ts
+        - tsx
+  react:
+    version: detect
+parserOptions:
+  ecmaVersion: 2018
+  sourceType: module
+  project: './tsconfig.json'
+  ecmaFeatures:
+    jsx: true
+    arrowFunctions: true
+plugins:
+  - '@typescript-eslint'
+  - react
+  - react-hooks
+  - jest
+rules:
+  jest/no-disabled-tests: warn
+  jest/no-focused-tests: error
+  jest/no-identical-title: error
+  jest/prefer-to-have-length: warn
+  jest/valid-expect: error
+  react/prop-types: off
+  react-hooks/rules-of-hooks: error
+  react-hooks/exhaustive-deps: warn

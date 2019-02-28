@@ -1,34 +1,41 @@
-// @ts-ignore
-import {observable, action, computed} from 'mobx'
+import { observable, action, computed } from 'mobx'
 import axios from 'axios'
 import { IGithubCommentInfo, IIssueCommentsCountProvider } from './IIssueCommentsCountProvider'
-import {IGithubComment, IGithubIssueCommentsResult} from '../components/interfaces'
+import { IGithubComment, IGithubIssueCommentsResult } from '../components/interfaces'
 
 export interface IGithubOptions {
-  apiRoot: string,
-  issueNumber: string,
+  apiRoot: string;
+  issueNumber: string;
 }
 
 export class GithubIssueCommentsProvider implements IIssueCommentsCountProvider {
   @observable public CommentsTotalCount: number = 0
+
   @observable public Comments: IGithubComment[] = []
+
   @observable public CanShowMoreComments: boolean = true
+
   @observable public FetchInProgress: boolean = false
+
   @observable public HasError: boolean = false
+
   @observable public ErrorMessage: string = ''
+
   @observable public DirectIssueLink: string = ''
+
   @computed.struct public get CommentInfo(): IGithubCommentInfo {
     return {
       totalCount: this.CommentsTotalCount,
-      issueUrl: this.DirectIssueLink
+      issueUrl: this.DirectIssueLink,
     }
   }
 
   private nextAfterKey = ''
+
   private options: IGithubOptions
 
-  constructor(options: IGithubOptions) {
-    this.options = options;
+  public constructor(options: IGithubOptions) {
+    this.options = options
   }
 
   @action.bound
@@ -46,7 +53,7 @@ export class GithubIssueCommentsProvider implements IIssueCommentsCountProvider 
       .then(this.onLoadMoreCommentsSuccess, this.onLoadMoreCommentsError)
   }
 
-  public getCommentsCountForIssue(issueNumber: string): IGithubCommentInfo {
+  public getCommentsCountForIssue(): IGithubCommentInfo {
     return this.CommentInfo
   }
 
@@ -56,13 +63,13 @@ export class GithubIssueCommentsProvider implements IIssueCommentsCountProvider 
     this.HasError = false
     this.ErrorMessage = ''
 
-    const responseData: IGithubIssueCommentsResult = response.data;
+    const responseData: IGithubIssueCommentsResult = response.data
     if (!responseData || !responseData.issue) {
       return
     }
 
-    const issue = responseData.issue;
-    const pageComments = issue.comments;
+    const { issue } = responseData
+    const pageComments = issue.comments
     if (!pageComments) {
       return
     }
@@ -105,7 +112,6 @@ export class GithubIssueCommentsProvider implements IIssueCommentsCountProvider 
     this.ErrorMessage = ''
     this.CanShowMoreComments = true
 
-    console.log(response.data)
     return response.data
   }
 

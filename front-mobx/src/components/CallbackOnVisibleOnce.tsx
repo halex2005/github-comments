@@ -1,36 +1,42 @@
-import React, { ReactNode } from 'react';
+import React from 'react'
+import { boundMethod } from 'autobind-decorator'
 
 interface IProps {
-  trigger: any
+  trigger: any;
 }
 
 export class CallbackOnVisibleOnce extends React.Component<IProps> {
-  componentDidMount() {
+  private scrollTriggerRef = React.createRef<HTMLDivElement>()
+
+  public componentDidMount() {
     document.addEventListener('scroll', this.checkInView)
     this.checkInView()
   }
 
-  componentWillUnmount() {
+  public componentWillUnmount() {
     document.removeEventListener('scroll', this.checkInView)
   }
 
-  checkInView = () => {
-    const scrollTrigger = this.refs.scrollTrigger as HTMLElement
-    if (scrollTrigger.getBoundingClientRect().bottom <= window.innerHeight) {
-      document.removeEventListener('scroll', this.checkInView)
-      this.triggerBottomIsReached();
-    }
-  }
-
-  triggerBottomIsReached() {
-    this.props.trigger && this.props.trigger()
-  }
-
-  render(): ReactNode {
+  public render() {
     return (
-      <div ref='scrollTrigger'>
+      <div ref={this.scrollTriggerRef}>
         {this.props.children}
       </div>
     )
+  }
+
+  @boundMethod
+  private checkInView() {
+    const scrollTrigger = this.scrollTriggerRef.current
+    if (scrollTrigger && scrollTrigger.getBoundingClientRect().bottom <= window.innerHeight) {
+      document.removeEventListener('scroll', this.checkInView)
+      this.triggerBottomIsReached()
+    }
+  }
+
+  private triggerBottomIsReached() {
+    if (this.props.trigger) {
+      this.props.trigger()
+    }
   }
 }

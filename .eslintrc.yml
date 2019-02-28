@@ -1,30 +1,6 @@
-root: true
-env:
-  node: true
-  es6: true
 extends:
   - eslint:recommended
   - 'plugin:@typescript-eslint/recommended'
-globals:
-  Atomics: readonly
-  SharedArrayBuffer: readonly
-parser: '@typescript-eslint/parser'
-settings:
-  'import/resolver':
-    node:
-      extensions:
-        - js
-        - jsx
-        - ts
-        - tsx
-parserOptions:
-  ecmaVersion: 2018
-  sourceType: module
-  project: './tsconfig.json'
-  ecmaFeatures:
-    jsx: true
-plugins:
-  - '@typescript-eslint'
 rules:
   '@typescript-eslint/no-explicit-any':
     - off
@@ -33,6 +9,9 @@ rules:
   '@typescript-eslint/indent':
     - error
     - 2
+  '@typescript-eslint/no-use-before-define': off
+  '@typescript-eslint/explicit-function-return-type': off
+  no-use-before-define: off
   indent:
     - error
     - 2
@@ -104,7 +83,7 @@ rules:
   lines-between-class-members:
     - error
     - always
-  new-cap: error
+  new-cap: off
   new-parens: error
   newline-per-chained-call:
     - error
@@ -157,7 +136,6 @@ rules:
   no-unused-expressions: error
   no-unused-labels: error
   no-unused-vars: error
-  no-use-before-define: error
   no-useless-call: error
   no-useless-catch: error
   no-useless-concat: error
