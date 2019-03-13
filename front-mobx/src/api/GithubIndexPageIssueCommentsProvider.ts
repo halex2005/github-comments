@@ -34,7 +34,7 @@ export class GithubIndexPageIssueCommentsProvider implements IIssueCommentsCount
   @action.bound
   public loadCommentsCount(): Promise<void> {
     if (this.FetchInProgress) {
-      return Promise.reject('fetch laready in progress')
+      return Promise.reject(new Error('fetch already in progress'))
     }
     this.FetchInProgress = true
     return axios

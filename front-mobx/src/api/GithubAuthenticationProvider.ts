@@ -17,7 +17,7 @@ export class GithubAuthenticationProvider {
 
   @observable public IsAuthenticated = false
 
-  @observable public InProgress = false
+  @observable public FetchInProgress = false
 
   @observable public AccessToken = ''
 
@@ -36,7 +36,7 @@ export class GithubAuthenticationProvider {
     }
     if (currentAccessToken) {
       this.IsAuthenticated = true
-      this.InProgress = false
+      this.FetchInProgress = false
       this.AccessToken = currentAccessToken
       return
     }
@@ -67,27 +67,30 @@ export class GithubAuthenticationProvider {
   @action.bound
   public logout(): Promise<void> {
     this.IsAuthenticated = false
-    this.InProgress = true
+    this.FetchInProgress = true
     this.clearCurrentUserInfoAndAccessToken()
     window.localStorage.removeItem(accessTokenStorageItemName)
     window.localStorage.removeItem(userNameStorageItemName)
     window.localStorage.removeItem(userAvatarStorageItemName)
     window.localStorage.removeItem(userProfileUrlStorageItemName)
-    return axios({ url: this.getLogoutUrl() })
+    return axios.get(this.getLogoutUrl())
       .then(this.clearInProgress, this.clearInProgress)
   }
 
   @action.bound
   private clearInProgress(): void {
-    this.InProgress = false
+    this.FetchInProgress = false
   }
 
   public getAccessToken(code: string): Promise<IOAuthTokenResult> {
-    this.InProgress = true
-    const request = {
-      url: `${this.options.apiRoot}/oauth/access-token?code=${code}`,
+    if (this.FetchInProgress) {
+      return Promise.reject(new Error('fetch already in progress'))
     }
-    return axios(request).then(this.getAccessTokenSuccess, this.getAccessTokenError)
+    this.FetchInProgress = true
+
+    return axios
+      .get(`${this.options.apiRoot}/oauth/access-token?code=${code}`)
+      .then(this.getAccessTokenSuccess, this.getAccessTokenError)
   }
 
   @action.bound
@@ -103,14 +106,14 @@ export class GithubAuthenticationProvider {
     this.CurrentUserInfo.userLogin = result.userLogin
     this.CurrentUserInfo.userAvatar = result.userAvatar
     this.CurrentUserInfo.userUrl = result.userUrl
-    this.InProgress = false
+    this.FetchInProgress = false
     this.IsAuthenticated = !!this.AccessToken
     return result
   }
 
   @action.bound
   private getAccessTokenError(response: any): any {
-    this.InProgress = false
+    this.FetchInProgress = false
     this.IsAuthenticated = false
     this.clearCurrentUserInfoAndAccessToken()
     return response

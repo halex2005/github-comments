@@ -39,7 +39,7 @@ const UnauthenticatedUser = observer(({ provider }: IProps) => {
 })
 
 export const GithubAuthenticationView = observer(function({ provider }: IProps) {
-  if (provider.InProgress) {
+  if (provider.FetchInProgress) {
     return (
       <button className="btn btn-primary navbar-btn">
         <i className="fa fa-spin fa-spinner fa-fw fa-2x" />

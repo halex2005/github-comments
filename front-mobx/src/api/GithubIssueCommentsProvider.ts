@@ -41,10 +41,10 @@ export class GithubIssueCommentsProvider implements IIssueCommentsCountProvider 
   @action.bound
   public loadMoreComments() {
     if (this.FetchInProgress) {
-      return Promise.reject('fetch in progress')
+      return Promise.reject(new Error('fetch already in progress'))
     }
     if (!this.CanShowMoreComments) {
-      return Promise.reject('no more comments to fetch')
+      return Promise.reject(new Error('no more comments to fetch'))
     }
     this.FetchInProgress = true
 
@@ -97,7 +97,7 @@ export class GithubIssueCommentsProvider implements IIssueCommentsCountProvider 
   @action.bound
   public postComment(markdown: string) {
     if (this.FetchInProgress) {
-      return Promise.reject('fetch in progress')
+      return Promise.reject(new Error('fetch already in progress'))
     }
     this.FetchInProgress = true
     return axios
