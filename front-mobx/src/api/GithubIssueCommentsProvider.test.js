@@ -161,27 +161,23 @@ function getPageCommentsResultNoComments() {
   return {
     'status': 200,
     'data': {
-      'data': {
-        'repository': {
-          'issue': {
-            'url': 'https://github.com/halex2005/temp-repo-for-issues/issues/2',
-            'comments': {
-              'totalCount': 0,
-              'pageInfo': {
-                'startCursor': null,
-                'endCursor': null,
-                'hasNextPage': false,
-              },
-              'nodes': [],
-            },
-          },
+      'issue': {
+        'id': 'abcdef',
+        'number': 1,
+        'url': 'https://github.com/halex2005/temp-repo-for-issues/issues/2',
+        'commentsTotalCount': 0,
+        'commentsCursor': {
+          'startCursor': null,
+          'endCursor': null,
+          'hasNextPage': false,
         },
-        'rateLimit': {
-          'limit': 5000,
-          'cost': 1,
-          'remaining': 4998,
-          'resetAt': '2019-01-24T20:22:31Z',
-        },
+        'comments': [],
+      },
+      'rateLimit': {
+        'limit': 5000,
+        'cost': 1,
+        'remaining': 4998,
+        'resetAt': '2019-01-24T20:22:31Z',
       },
     },
   }
@@ -190,41 +186,39 @@ function getPageCommentsResultNoComments() {
 function getPageCommentsResult(commentsCount) {
   const hasNextPage = commentsCount > 5
   const returnedCommentsCount = commentsCount > 5 ? 5 : commentsCount
-  const comments = new Array(returnedCommentsCount).map((x, i) => ({
-    'id': `${i}`,
-    'bodyHTML': '<p>some comment</p>',
-    'createdAt': '2017-11-28T18:13:26Z',
-    'author': {
-      'login': 'halex2005',
-      'avatarUrl': 'https://avatars0.githubusercontent.com/u/1401048?v=4',
-      'url': 'https://github.com/halex2005',
-    },
-  }))
+  const comments = Array(returnedCommentsCount)
+    .fill(0)
+    .map((x, i) => ({
+      'id': `${i}`,
+      'url': 'https://github.com/halex2005/temp-repo-for-issues/issues/2#111',
+      'createdAt': '2017-11-28T18:13:26Z',
+      'body': '<p>some comment</p>',
+      'userLogin': 'halex2005',
+      'userAvatar': 'https://avatars0.githubusercontent.com/u/1401048?v=4',
+      'userUrl': 'https://github.com/halex2005',
+    }))
 
   return {
     'status': 200,
     'data': {
-      'data': {
-        'repository': {
-          'issue': {
-            'url': 'https://github.com/halex2005/temp-repo-for-issues/issues/1',
-            'comments': {
-              'totalCount': commentsCount,
-              'pageInfo': {
-                'startCursor': 'Y3Vyc29yOnYyOpHOFLgpsQ==',
-                'endCursor': 'Y3Vyc29yOnYyOpHOGR-O7w==',
-                'hasNextPage': hasNextPage,
-              },
-              'nodes': comments,
-            },
-          },
+      'issue': {
+        'id': 'abcdef',
+        'number': 1,
+        'url': 'https://github.com/halex2005/temp-repo-for-issues/issues/2',
+        'commentsTotalCount': commentsCount,
+        'commentsCursor': {
+          'startCursor': 'Y3Vyc29yOnYyOpHOFLgpsQ==',
+          'endCursor': 'Y3Vyc29yOnYyOpHOGR-O7w==',
+          'hasNextPage': hasNextPage,
         },
-        'rateLimit': {
-          'limit': 5000,
-          'cost': 1,
-          'remaining': 4999,
-          'resetAt': '2019-01-24T20:22:31Z',
-        },
+        'comments': comments,
+      },
+
+      'rateLimit': {
+        'limit': 5000,
+        'cost': 1,
+        'remaining': 4999,
+        'resetAt': '2019-01-24T20:22:31Z',
       },
     },
   }
