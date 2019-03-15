@@ -93,7 +93,7 @@ const github = {
           duration: ms,
         })
         return Promise.resolve({
-          accessToken: response.data.accessToken,
+          accessToken: response.data.access_token,
           scope: response.data.scope,
           tokenType: response.data.token_type,
         })
@@ -115,7 +115,7 @@ const github = {
     const start = Date.now()
     const url = 'https://api.github.com/user'
     return axios
-      .get(url, { headers: { 'Authorization': `bearer ${accessToken}` } })
+      .get(url, { headers: { Authorization: `bearer ${accessToken}` } })
       .then(response => {
         const ms = Date.now() - start
         logger.info('User info request completed', {
@@ -143,7 +143,7 @@ const github = {
           duration: ms,
           limits: getRateLimitsFromHeaders(err.response.headers),
         })
-        return err
+        return Promise.reject(err)
       })
   },
 

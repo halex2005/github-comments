@@ -89,7 +89,7 @@ export class GithubAuthenticationProvider {
     this.FetchInProgress = true
 
     return axios
-      .get(`${this.options.apiRoot}/oauth/access-token?code=${code}`)
+      .get(`${this.options.apiRoot}/oauth/login?code=${code}`)
       .then(this.getAccessTokenSuccess, this.getAccessTokenError)
   }
 

@@ -98,7 +98,10 @@ app.get('/oauth/login', (req: express.Request, res: express.Response) => {
         res.status(200).send(result)
       })
     )
-    .catch(err => res.status(400).send(err))
+    .catch(err => {
+      const result = (err.response && err.response.data) || { message: 'Unexpected error' }
+      res.status(400).send(result)
+    })
 })
 
 app.get('/oauth/logout', (req: express.Request, res: express.Response) => {
