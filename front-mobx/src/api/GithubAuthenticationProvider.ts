@@ -66,15 +66,27 @@ export class GithubAuthenticationProvider {
 
   @action.bound
   public logout(): Promise<void> {
-    this.IsAuthenticated = false
     this.FetchInProgress = true
-    this.clearCurrentUserInfoAndAccessToken()
-    window.localStorage.removeItem(accessTokenStorageItemName)
-    window.localStorage.removeItem(userNameStorageItemName)
-    window.localStorage.removeItem(userAvatarStorageItemName)
-    window.localStorage.removeItem(userProfileUrlStorageItemName)
-    return axios.get(this.getLogoutUrl())
+    return axios.get(this.getLogoutUrl(), {
+      headers: { Authorization: `bearer ${this.AccessToken}` },
+    })
+      .then(response => {
+        if (response.status >= 200 && response.status < 299) {
+          this.IsAuthenticated = false
+          this.clearCurrentUserInfoAndAccessToken()
+          window.localStorage.removeItem(accessTokenStorageItemName)
+          window.localStorage.removeItem(userNameStorageItemName)
+          window.localStorage.removeItem(userAvatarStorageItemName)
+          window.localStorage.removeItem(userProfileUrlStorageItemName)
+        } else {
+          console.error(response.status, response.statusText)
+          console.error(response.data)
+        }
+      }, e => {
+        console.error(e)
+      })
       .then(this.clearInProgress, this.clearInProgress)
+      .catch(this.clearInProgress)
   }
 
   @action.bound

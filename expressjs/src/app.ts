@@ -106,6 +106,7 @@ app.get('/oauth/login', (req: express.Request, res: express.Response) => {
 
 app.get('/oauth/logout', (req: express.Request, res: express.Response) => {
   const accessToken = (req.cookies && req.cookies[accessTokenCookieName])
+    || (req.headers.authorization && req.headers.authorization.replace(/^bearer/i, '').trim())
     || (req.query && req.query.accessToken)
   if (!accessToken) {
     res.sendStatus(404)
